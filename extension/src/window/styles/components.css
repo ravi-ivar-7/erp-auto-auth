@@ -1,0 +1,425 @@
+.progress-bar {
+    width: 100%;
+    height: 4px;
+    background: var(--bg-tertiary);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 16px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-primary), var(--success));
+    width: 0%;
+    transition: width 0.5s ease;
+}
+
+.progress-steps {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.progress-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+    opacity: 0.5;
+    transition: var(--transition);
+}
+
+.progress-step.active {
+    opacity: 1;
+    color: var(--accent-primary);
+}
+
+.progress-step.completed {
+    opacity: 1;
+    color: var(--success);
+}
+
+.step-icon {
+    font-size: 20px;
+    margin-bottom: 4px;
+}
+
+.step-text {
+    font-size: 12px;
+    text-align: center;
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--success);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.info-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 16px;
+    margin-top: 24px;
+}
+
+.info-card {
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    text-align: center;
+    backdrop-filter: blur(10px);
+    transition: var(--transition);
+}
+
+.info-card:hover {
+    border-color: var(--accent-primary);
+    transform: translateY(-2px);
+}
+
+.card-icon {
+    font-size: 24px;
+    margin-bottom: 8px;
+}
+
+.card-content h4 {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+.card-content p {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.checkbox-label input[type="checkbox"] {
+    display: none;
+}
+
+.checkmark {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border);
+    border-radius: 4px;
+    position: relative;
+    transition: var(--transition);
+}
+
+.checkbox-label input[type="checkbox"]:checked + .checkmark {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+}
+
+.checkbox-label input[type="checkbox"]:checked + .checkmark::after {
+    content: '✓';
+    position: absolute;
+    top: -2px;
+    left: 3px;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.setting-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.setting-item:last-child {
+    border-bottom: none;
+}
+
+.setting-item label {
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.setting-description {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+.gmail-status {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.danger-zone {
+    border: 1px solid var(--danger);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-top: 24px;
+}
+
+.danger-zone h3 {
+    color: var(--danger);
+}
+
+.progress-circle {
+    position: relative;
+    display: inline-block;
+}
+
+.progress-ring {
+    transform: rotate(-90deg);
+}
+
+.progress-svg circle {
+    transition: stroke-dashoffset 0.5s ease;
+}
+
+.progress-percentage {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 18px;
+    font-weight: bold;
+    color: var(--accent-primary);
+}
+
+.login-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 32px;
+}
+
+.login-step {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    opacity: 0.5;
+    transition: var(--transition);
+    backdrop-filter: blur(10px);
+}
+
+.login-step.active {
+    opacity: 1;
+    border-color: var(--accent-primary);
+    background: rgba(0, 212, 255, 0.1);
+}
+
+.login-step.completed {
+    opacity: 1;
+    border-color: var(--success);
+    background: rgba(0, 255, 136, 0.1);
+}
+
+.login-step .step-icon {
+    font-size: 24px;
+    min-width: 24px;
+}
+
+.step-content h4 {
+    font-size: 14px;
+    margin-bottom: 2px;
+}
+
+.step-content p {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+/* Quick Access Card Styling */
+.quick-access-card .card-header {
+    padding: 16px 24px 12px 20px;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.header-content h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.session-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, rgba(0, 255, 136, 0.15), rgba(0, 212, 255, 0.15));
+    border: 1px solid rgba(0, 255, 136, 0.3);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.badge-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--success);
+    animation: pulse 2s infinite;
+}
+
+.badge-text {
+    color: var(--success);
+}
+
+.session-summary {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.session-icon {
+    font-size: 24px;
+    margin-top: 2px;
+}
+
+.session-content {
+    flex: 1;
+}
+
+.session-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 4px 0;
+}
+
+.session-subtitle {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin: 0;
+    line-height: 1.4;
+}
+
+.btn-quick-access {
+    width: 100%;
+    background: linear-gradient(135deg, var(--accent-primary), #0084ff);
+    border: none;
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 12px rgba(0, 212, 255, 0.25);
+}
+
+.btn-quick-access:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 212, 255, 0.35);
+}
+
+.btn-quick-access:active {
+    transform: translateY(0);
+}
+
+.btn-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.btn-quick-access .btn-icon {
+    font-size: 20px;
+}
+
+.btn-text-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+}
+
+.btn-primary-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 2px;
+}
+
+.btn-secondary-text {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.session-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    gap: 12px;
+}
+
+.session-info-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.info-icon {
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+.session-timestamp {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.btn-clear-session {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(255, 59, 48, 0.05);
+    border: 1px solid var(--danger);
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 10px;
+    color: var(--danger);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-clear-session:hover {
+    border-color: var(--danger);
+    color: white;
+    background: var(--danger);
+}
+
+.clear-icon {
+    font-size: 10px;
+}

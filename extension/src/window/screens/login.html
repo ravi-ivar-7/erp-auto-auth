@@ -1,0 +1,63 @@
+<div class="screen" id="login-screen">
+    <div class="login-container">
+        <div class="login-header">
+            <h1>Logging in to ERP</h1>
+            <p>Please wait while we authenticate your session</p>
+        </div>
+        
+        <div class="login-progress">
+            <div class="progress-circle">
+                <div class="progress-ring">
+                    <svg class="progress-svg" width="120" height="120">
+                        <circle cx="60" cy="60" r="54" stroke="#333" stroke-width="4" fill="none"/>
+                        <circle cx="60" cy="60" r="54" stroke="#00d4ff" stroke-width="4" fill="none" 
+                                stroke-dasharray="339.292" stroke-dashoffset="339.292" class="progress-bar"/>
+                    </svg>
+                    <div class="progress-percentage">0%</div>
+                </div>
+            </div>
+            
+            <div class="login-steps">
+                <div class="login-step active" data-step="init">
+                    <div class="step-icon">🔄</div>
+                    <div class="step-content">
+                        <h4>Initializing</h4>
+                        <p>Preparing login sequence</p>
+                    </div>
+                </div>
+                <div class="login-step" data-step="credentials">
+                    <div class="step-icon">🔐</div>
+                    <div class="step-content">
+                        <h4>Credentials</h4>
+                        <p>Submitting login credentials</p>
+                    </div>
+                </div>
+                <div class="login-step" data-step="security">
+                    <div class="step-icon">🛡️</div>
+                    <div class="step-content">
+                        <h4>Security Questions</h4>
+                        <p>Answering security questions</p>
+                    </div>
+                </div>
+                <div class="login-step" data-step="otp">
+                    <div class="step-icon">📧</div>
+                    <div class="step-content">
+                        <h4>OTP Verification</h4>
+                        <p>Retrieving OTP from Gmail</p>
+                    </div>
+                </div>
+                <div class="login-step" data-step="complete">
+                    <div class="step-icon">✅</div>
+                    <div class="step-content">
+                        <h4>Complete</h4>
+                        <p>Login successful</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="login-actions">
+            <button id="cancel-login" class="btn-secondary">Cancel</button>
+        </div>
+    </div>
+</div>

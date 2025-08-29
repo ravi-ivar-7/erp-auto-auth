@@ -1,0 +1,462 @@
+import { CredentialService } from '../services/CredentialService.js';
+import { GmailService } from '../services/GmailService.js';
+import { StorageService } from '../services/StorageService.js';
+import { GMAIL_CONFIG } from '../config/constants.js';
+
+export class SetupController {
+    constructor(app) {
+        this.app = app;
+        this.currentStep = 1;
+        this.totalSteps = 3;
+        this.SECURITY_QUESTIONS_COUNT = 3;
+        this.userData = {};
+        this.credentialService = new CredentialService();
+        this.storageService = new StorageService();
+        this.gmailService = new GmailService();
+    }
+
+    async init() {
+        // Controller initialization
+    }
+
+    async onScreenLoad() {
+        this.setupEventListeners();
+        await this.loadStoredSetupData();
+        this.showStep(1);
+    }
+
+    setupEventListeners() {
+        const credentialsForm = document.getElementById('credentials-form');
+        const securityForm = document.getElementById('security-form');
+        const gmailConnect = document.getElementById('gmail-connect');
+        const finishSetup = document.getElementById('finish-setup');
+        const backBtn = document.getElementById('back-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const addQuestionBtn = document.getElementById('add-security-question');
+        const passwordToggle = document.getElementById('password-toggle');
+
+        credentialsForm?.addEventListener('submit', (e) => this.handleCredentialsSubmit(e));
+        securityForm?.addEventListener('submit', (e) => this.handleSecuritySubmit(e));
+        document.getElementById('gmail-connect').addEventListener('click', () => this.handleGmailConnect());
+        document.getElementById('reload-extension').addEventListener('click', () => this.handleReloadExtension());
+        document.getElementById('add-security-question').addEventListener('click', () => this.addSecurityQuestion());
+        document.getElementById('password-toggle').addEventListener('click', () => this.togglePasswordVisibility());
+        document.getElementById('finish-setup').addEventListener('click', () => this.handleFinishSetup());
+        document.getElementById('back-btn').addEventListener('click', () => this.previousStep());
+        document.getElementById('next-btn').addEventListener('click', () => this.handleNextStep());
+        
+        // Progress dot navigation
+        document.querySelectorAll('.dot').forEach(dot => {
+            dot.addEventListener('click', (e) => {
+                const step = parseInt(e.target.dataset.step);
+                if (step <= this.currentStep) {
+                    this.showStep(step);
+                }
+            });
+        });
+    }
+
+    async handleCredentialsSubmit(e) {
+        if (e) e.preventDefault();
+        
+        const rollNumber = document.getElementById('roll-number').value.trim();
+        const password = document.getElementById('password').value;
+        
+        if (!rollNumber || !password) {
+            window.erpApp.showError('Please fill in all fields');
+            return;
+        }
+        
+        this.userData.rollNumber = rollNumber;
+        this.userData.password = password;
+        
+        await this.saveSetupData();
+        this.nextStep();
+        this.loadSecurityQuestions();
+    }
+    
+    handleNextClick() {
+        const currentStepEl = document.querySelector('.step.active');
+        const stepNum = parseInt(currentStepEl.dataset.step);
+        
+        if (stepNum === 1) {
+            document.getElementById('credentials-form').dispatchEvent(new Event('submit'));
+        } else if (stepNum === 2) {
+            document.getElementById('security-form').dispatchEvent(new Event('submit'));
+        } else if (stepNum === 3) {
+            this.handleGmailConnect();
+        } else if (stepNum === 4) {
+            this.handleFinishSetup();
+        }
+    }
+    
+    previousStep() {
+        if (this.currentStep > 1) {
+            this.currentStep--;
+            this.showStep(this.currentStep);
+        }
+    }
+
+    loadSecurityQuestions() {
+        const container = document.querySelector('.security-questions');
+        if (!container) return;
+        
+        // Don't clear if already has prefilled content
+        if (container.children.length > 0 && this.userData.securityQuestions) {
+            return;
+        }
+        
+        container.innerHTML = '';
+        
+        // Check if we have stored security questions
+        if (this.userData.securityQuestions && this.userData.securityQuestions.length > 0) {
+            this.prefillSecurityQuestions();
+        } else {
+            // Add default number of security questions
+            for (let i = 0; i < this.SECURITY_QUESTIONS_COUNT; i++) {
+                this.addSecurityQuestion();
+            }
+        }
+    }
+    
+    addSecurityQuestion() {
+        const container = document.querySelector('.security-questions');
+        if (!container) return;
+        
+        
+        const questionDiv = document.createElement('div');
+        questionDiv.className = 'security-question-pair';
+        questionDiv.innerHTML = `
+            <div class="form-group">
+                <label>Security Question</label>
+                <input type="text" class="security-question" placeholder="What is your mother's maiden name?" required>
+            </div>
+            <div class="form-group">
+                <label>Answer</label>
+                <input type="text" class="security-answer" placeholder="Your answer" required>
+            </div>
+            <button type="button" class="remove-question">&times;</button>
+        `;
+        
+        // Add remove functionality
+        const removeBtn = questionDiv.querySelector('.remove-question');
+        removeBtn.addEventListener('click', () => {
+            questionDiv.remove();
+        });
+        
+        container.appendChild(questionDiv);
+    }
+
+    async saveSetupData() {
+        try {
+            await StorageService.set('user_data', this.userData);
+        } catch (error) {
+            console.error('Failed to save setup data:', error);
+        }
+    }
+
+    async loadStoredSetupData() {
+        try {
+            const storedData = await StorageService.get('user_data');
+            if (storedData) {
+                this.userData = storedData;
+                this.prefillForms();
+                window.erpApp.showSuccess('Previous setup data loaded');
+            }
+        } catch (error) {
+            console.error('Failed to load setup data:', error);
+        }
+    }
+
+    prefillForms() {
+        // Prefill credentials immediately
+        if (this.userData.rollNumber) {
+            const rollNumberInput = document.getElementById('roll-number');
+            if (rollNumberInput) {
+                rollNumberInput.value = this.userData.rollNumber;
+            }
+        }
+        
+        if (this.userData.password) {
+            const passwordInput = document.getElementById('password');
+            if (passwordInput) {
+                passwordInput.value = this.userData.password;
+            }
+        }
+
+        // Prefill security questions - trigger immediately and on step navigation
+        if (this.userData.securityQuestions) {
+            this.prefillSecurityQuestions();
+        }
+        // Prefill Gmail status and custom client ID
+        // Check Gmail data from CredentialService
+        this.checkAndPrefillGmailStatus();
+        
+        if (this.userData.customClientId) {
+            setTimeout(() => {
+                const customClientIdInput = document.getElementById('custom-client-id');
+                if (customClientIdInput) {
+                    customClientIdInput.value = this.userData.customClientId;
+                }
+            }, 100);
+        }
+    }
+
+    prefillSecurityQuestions() {
+        const container = document.querySelector('.security-questions');
+        
+        if (!container || !this.userData.securityQuestions) {
+            return;
+        }
+
+        container.innerHTML = '';
+        
+        this.userData.securityQuestions.forEach((qa, index) => {
+            const questionDiv = document.createElement('div');
+            questionDiv.className = 'security-question-pair';
+            questionDiv.innerHTML = `
+                <div class="form-group">
+                    <label>Security Question</label>
+                    <input type="text" class="security-question" value="${qa.question || ''}" required>
+                </div>
+                <div class="form-group">
+                    <label>Answer</label>
+                    <input type="text" class="security-answer" value="${qa.answer || ''}" required>
+                </div>
+                <button type="button" class="remove-question">&times;</button>
+            `;
+            
+            const removeBtn = questionDiv.querySelector('.remove-question');
+            removeBtn.addEventListener('click', () => {
+                questionDiv.remove();
+            });
+            
+            container.appendChild(questionDiv);
+        });
+    }
+
+    async checkAndPrefillGmailStatus() {
+        const gmailData = await CredentialService.getGmailData();
+        if (gmailData) {
+            setTimeout(() => {
+                this.prefillGmailStatus(gmailData);
+            }, 100);
+        }
+    }
+
+    prefillGmailStatus(gmailData) {
+        if (!gmailData) return;
+        
+        const button = document.getElementById('gmail-connect');
+        const status = document.querySelector('.gmail-status');
+        
+        if (button && status) {
+            button.textContent = 'Connected';
+            button.disabled = true;
+            status.className = 'gmail-status connected';
+            status.textContent = `✓ Connected: ${gmailData.email || 'Gmail'}`;
+        }
+    }
+
+    async handleSecuritySubmit(e) {
+        if (e) e.preventDefault();
+        
+        const securityQuestions = [];
+        const pairs = document.querySelectorAll('.security-question-pair');
+        
+        pairs.forEach((pair, index) => {
+            const question = pair.querySelector('.security-question').value.trim();
+            const answer = pair.querySelector('.security-answer').value.trim();
+            
+            if (question && answer) {
+                securityQuestions.push({ question, answer });
+            }
+        });
+        
+        if (securityQuestions.length !== this.SECURITY_QUESTIONS_COUNT) {
+            window.erpApp.showError(`Please provide exactly ${this.SECURITY_QUESTIONS_COUNT} security questions`);
+            return;
+        }
+        
+        this.userData.securityQuestions = securityQuestions;
+        await this.saveSetupData();
+        this.nextStep();
+    }
+
+    async handleGmailConnect() {
+        try {
+            const button = document.getElementById('gmail-connect');
+            const status = document.querySelector('.gmail-status');
+            const customClientIdInput = document.getElementById('custom-client-id');
+            
+            button.disabled = true;
+            button.textContent = 'Connecting...';
+            
+            // Store custom client ID if provided
+            const customClientId = customClientIdInput?.value?.trim();
+            if (customClientId && customClientId !== GMAIL_CONFIG.DEFAULT_CLIENT_ID) {
+                this.userData.customClientId = customClientId;
+                await this.saveSetupData();
+                
+                // Show instructions for manual manifest update
+                status.className = 'gmail-status error';
+                status.innerHTML = `
+                    <strong>Manual Setup Required:</strong><br>
+                    1. Update manifest.json oauth2.client_id with: <code>${customClientId}</code><br>
+                    2. Reload the extension<br>
+                    3. Try connecting again
+                `;
+                button.disabled = false;
+                button.textContent = 'Connect Gmail Account';
+                return;
+            }
+            
+            const tokenData = await GmailService.authenticate(customClientId);
+            
+            // Save Gmail data using CredentialService instead of setupData
+            await CredentialService.saveGmailData(tokenData);
+            
+            status.className = 'gmail-status connected';
+            status.textContent = `✓ Connected: ${tokenData.email}`;
+            button.textContent = 'Connected';
+            
+            // Complete setup and go to main page
+            await this.completeSetup();
+            setTimeout(() => this.app.navigateToScreen('dashboard'), 1500);
+        } catch (error) {
+            console.error('Gmail connection failed:', error);
+            window.erpApp.showError('Failed to connect Gmail');
+            
+            const button = document.getElementById('gmail-connect');
+            const status = document.querySelector('.gmail-status');
+            
+            button.disabled = false;
+            button.textContent = 'Retry Connection';
+            status.className = 'gmail-status error';
+            status.textContent = '✗ Connection failed. Please try again.';
+        }
+    }
+
+    async completeSetup() {
+        try {
+            const success = await CredentialService.saveUserData(
+                this.userData.rollNumber,
+                this.userData.password,
+                this.userData.securityQuestions
+            );
+            
+            if (!success) {
+                this.app.showError('Failed to save setup data');
+                return false;
+            }
+            
+            await this.app.getController('app').loadUserInfo();
+            
+            this.app.showSuccess('Setup completed successfully!');
+            return true;
+        } catch (error) {
+            console.error('Setup completion failed:', error);
+            this.app.showError('Failed to complete setup');
+            return false;
+        }
+    }
+
+    showStep(step) {
+        // Update current step
+        this.currentStep = step;
+        
+        // Update step visibility
+        document.querySelectorAll('.step').forEach(stepEl => {
+            stepEl.classList.remove('active');
+        });
+        
+        const targetStep = document.querySelector(`.step[data-step="${step}"]`);
+        if (targetStep) {
+            targetStep.classList.add('active');
+        }
+        
+        // Update progress dots
+        document.querySelectorAll('.dot').forEach((dot, index) => {
+            dot.classList.remove('active', 'completed');
+            const dotStep = index + 1;
+            
+            if (dotStep < step) {
+                dot.classList.add('completed');
+            } else if (dotStep === step) {
+                dot.classList.add('active');
+            }
+        });
+        
+        // Update step counter
+        const stepCounter = document.getElementById('current-step');
+        if (stepCounter) {
+            stepCounter.textContent = step;
+        }
+        
+        // Update navigation buttons
+        const backBtn = document.getElementById('back-btn');
+        const nextBtn = document.getElementById('next-btn');
+        
+        if (backBtn) {
+            backBtn.disabled = step === 1;
+        }
+        
+        if (nextBtn) {
+            if (step === 4) {
+                nextBtn.textContent = 'Finish';
+            } else {
+                nextBtn.textContent = 'Next';
+            }
+        }
+
+        // Trigger prefill for current step
+        if (step === 2 && this.userData.securityQuestions) {
+            // Delay to ensure DOM is ready
+            setTimeout(() => {
+                this.prefillSecurityQuestions();
+            }, 50);
+        } else if (step === 3) {
+            setTimeout(() => {
+                this.checkAndPrefillGmailStatus();
+            }, 50);
+        }
+    }
+
+
+    handleNextStep() {
+        if (this.currentStep === 1) {
+            this.handleCredentialsSubmit();
+        } else if (this.currentStep === 2) {
+            this.handleSecuritySubmit();
+        } else if (this.currentStep === 3) {
+            this.handleGmailConnect();
+        }
+    }
+
+    nextStep() {
+        if (this.currentStep < 3) {
+            this.showStep(this.currentStep + 1);
+        }
+    }
+
+    togglePasswordVisibility() {
+        const passwordInput = document.getElementById('password');
+        const passwordToggle = document.getElementById('password-toggle');
+        
+        if (passwordInput && passwordToggle) {
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                passwordToggle.textContent = '🙈';
+            } else {
+                passwordInput.type = 'password';
+                passwordToggle.textContent = '👁️';
+            }
+        }
+    }
+
+    previousStep() {
+        if (this.currentStep > 1) {
+            this.showStep(this.currentStep - 1);
+        }
+    }
+}

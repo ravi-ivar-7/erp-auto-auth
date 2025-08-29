@@ -1,0 +1,44 @@
+{
+  "manifest_version": 3,
+  "name": "ERP Auto Auth (EAA)",
+  "version": "1.0.0",
+  "description": "Automated login for IIT Kharagpur ERP with Gmail OTP integration",
+  "icons": {
+    "16": "src/assets/icons/icon-16.png",
+    "32": "src/assets/icons/icon-32.png",
+    "48": "src/assets/icons/icon-48.png",
+    "128": "src/assets/icons/icon-128.png"
+  },
+  "permissions": [
+    "storage",
+    "tabs",
+    "identity",
+    "identity.email"
+  ],
+  "host_permissions": [
+    "https://erp.iitkgp.ac.in/*",
+    "https://accounts.google.com/*",
+    "https://gmail.googleapis.com/*"
+  ],
+  "background": {
+    "service_worker": "src/background.js"
+  },
+  "action": {
+    "default_title": "ERP Auto Auth (EAA)",
+    "default_icon": {
+      "16": "src/assets/icons/icon-16.png",
+      "32": "src/assets/icons/icon-32.png",
+      "48": "src/assets/icons/icon-48.png",
+      "128": "src/assets/icons/icon-128.png"
+    }
+  },
+  "oauth2": {
+    "client_id": "47059489767-er6jn7e2b8bqmo5foljmmitne2ttlhlm.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/userinfo.email",
+      "https://www.googleapis.com/auth/userinfo.profile",
+      "https://www.googleapis.com/auth/gmail.readonly",
+      "openid"
+    ]
+  }
+}

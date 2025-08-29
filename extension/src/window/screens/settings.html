@@ -1,0 +1,48 @@
+<div class="screen" id="settings-screen">
+    <div class="settings-container">
+        <div class="settings-header">
+            <h1>Settings</h1>
+            <p>Manage your ERP credentials and preferences</p>
+        </div>
+        
+        <div class="settings-content">
+            <div class="settings-section">
+                <div class="section-header">
+                    <h3>Account</h3>
+                    <button class="btn-danger btn-mini" id="reset-data">⚠️ Reset</button>
+                </div>
+                <div class="compact-setting">
+                    <span class="setting-label">Roll:</span>
+                    <span id="settings-roll" class="setting-value">Loading...</span>
+                </div>
+                <div class="compact-setting">
+                    <span class="setting-label">Pass:</span>
+                    <span id="settings-password" class="setting-value">••••••••</span>
+                    <button class="btn-mini" id="show-password">👁️</button>
+                </div>
+            </div>
+            
+            <div class="settings-section">
+                <h3>Gmail</h3>
+                <div class="compact-setting">
+                    <span class="setting-label">Email:</span>
+                    <span id="gmail-email" class="setting-value">Not connected</span>
+                </div>
+                <div class="compact-setting">
+                    <span class="setting-label">Status:</span>
+                    <span id="gmail-status" class="setting-value">Disconnected</span>
+                    <button class="btn-mini btn-danger" id="disconnect-gmail" style="display: none;">Disconnect</button>
+                    <button class="btn-mini" id="reconnect-gmail" style="display: none;">Reconnect</button>
+                </div>
+            </div>
+            
+            <div class="settings-section">
+                <h3>Security Questions</h3>
+                <div id="security-questions-list" class="compact-list"></div>
+            </div>
+            
+            
+        </div>
+        
+    </div>
+</div>

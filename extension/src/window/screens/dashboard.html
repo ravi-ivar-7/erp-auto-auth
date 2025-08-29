@@ -1,0 +1,130 @@
+<div class="screen" id="dashboard-screen">
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <h1>ERP Dashboard</h1>
+            <div class="status-indicator">
+                <span class="status-dot"></span>
+                <span class="status-text">Ready</span>
+            </div>
+        </div>
+        
+        <div class="dashboard-content">
+            <div class="login-card">
+                <div class="card-header">
+                    <h3>ERP Login</h3>
+                </div>
+                <div class="card-body">
+                    <button id="login-btn" class="btn-primary btn-large">
+                        <span class="btn-icon">🚀</span>
+                        <span class="btn-text">Login to ERP</span>
+                    </button>
+                    <div class="login-progress hidden">
+                        <div class="progress-bar">
+                            <div class="progress-fill"></div>
+                        </div>
+                        <div class="progress-steps">
+                            <div class="progress-step" data-step="credentials">
+                                <span class="step-icon">🔐</span>
+                                <span class="step-text">Credentials</span>
+                            </div>
+                            <div class="progress-step" data-step="security">
+                                <span class="step-icon">🛡️</span>
+                                <span class="step-text">Security</span>
+                            </div>
+                            <div class="progress-step" data-step="otp">
+                                <span class="step-icon">📧</span>
+                                <span class="step-text">OTP</span>
+                            </div>
+                            <div class="progress-step" data-step="login">
+                                <span class="step-icon">✅</span>
+                                <span class="step-text">Login</span>
+                            </div>
+                        </div>
+                        <div class="polling-status hidden">
+                            <div class="polling-info">
+                                <span class="polling-icon">⏳</span>
+                                <span id="polling-message" class="polling-text">Retrieving OTP from Gmail...</span>
+                            </div>
+                            <div class="polling-details">
+                                <span id="polling-timer" class="polling-timer">0:00</span>
+                                <span id="polling-attempts" class="polling-attempts">Attempt 1/10</span>
+                            </div>
+                            <div id="polling-error" class="polling-error hidden"></div>
+                        </div>
+                        <div class="login-actions hidden">
+                            <button id="cancel-login" class="btn-secondary">Cancel Login</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="quick-access-card hidden" id="quick-access-card">
+                <div class="card-header">
+                    <div class="header-content">
+                        <h3>⚡ Quick Access</h3>
+                        <div class="session-badge">
+                            <span class="badge-dot"></span>
+                            <span class="badge-text">Active Session</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="session-summary">
+                        <div class="session-icon">🎯</div>
+                        <div class="session-content">
+                            <p class="session-title">Ready to Continue</p>
+                            <p class="session-subtitle">Your ERP session is authenticated and ready to use</p>
+                        </div>
+                    </div>
+                    
+                    <button id="use-session-btn" class="btn-quick-access">
+                        <div class="btn-content">
+                            <span class="btn-icon">🚀</span>
+                            <div class="btn-text-group">
+                                <span class="btn-primary-text">Open ERP Portal</span>
+                                <span class="btn-secondary-text">Continue with saved session</span>
+                            </div>
+                        </div>
+                    </button>
+                    
+                    <div class="session-meta">
+                        <div class="session-info-row">
+                            <span class="info-icon">🕒</span>
+                            <span id="session-time" class="session-timestamp">Session from: --</span>
+                        </div>
+                        <button id="clear-session-btn" class="btn-clear-session">
+                            <span class="clear-icon">🗑️</span>
+                            <span>Clear Session</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="info-summary">
+                <div class="summary-row">
+                    <span class="summary-label">👤 Account:</span>
+                    <span id="account-info" class="summary-value">Not configured</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">📧 Gmail:</span>
+                    <span id="gmail-info" class="summary-value">Not connected</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">🕒 Last Login:</span>
+                    <span id="last-login-info" class="summary-value">Never</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="success-screen hidden">
+            <div class="success-content">
+                <div class="success-icon">✅</div>
+                <h2>ERP is Ready!</h2>
+                <p>Your session has been authenticated successfully</p>
+                <button id="open-erp" class="btn-primary btn-large">
+                    <span class="btn-text">Open ERP (Authenticated)</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
