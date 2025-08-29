@@ -1,4 +1,4 @@
-# IIT KGP ERP Auto Login Extension
+# ERP Auto Auth (EAA) Extension
 
 A production-ready Chrome extension for automated login to IIT Kharagpur ERP system with Gmail OTP integration.
 
