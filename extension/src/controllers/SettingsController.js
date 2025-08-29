@@ -516,6 +516,20 @@ export class SettingsController {
 
     
     async handleGmailDisconnect() {
+        // Show confirmation dialog
+        const confirmed = confirm(
+            'Are you sure you want to disconnect Gmail?\n\n' +
+            'This will:\n' +
+            '• Remove Gmail access tokens\n' +
+            '• Disable automatic OTP retrieval\n' +
+            '• Require manual OTP entry for ERP login\n\n' +
+            'You can reconnect Gmail anytime from settings.'
+        );
+        
+        if (!confirmed) {
+            return;
+        }
+        
         try {
             // Clear Gmail data from Chrome storage
             await StorageService.remove('gmail_data');
@@ -524,6 +538,7 @@ export class SettingsController {
             try {
                 await chrome.identity.clearAllCachedAuthTokens();
             } catch (error) {
+                console.warn('Failed to clear cached tokens:', error);
             }
             
             // Update UI

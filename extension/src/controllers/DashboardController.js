@@ -522,30 +522,53 @@ export class DashboardController {
         document.body.appendChild(dialog);
 
         // Event listeners
-        document.getElementById('dialog-cancel').addEventListener('click', () => {
-            document.body.removeChild(dialog);
-            document.head.removeChild(style);
-        });
+        const cancelBtn = document.getElementById('dialog-cancel');
+        const openBtn = document.getElementById('dialog-open');
+        
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', () => {
+                if (document.body.contains(dialog)) {
+                    document.body.removeChild(dialog);
+                }
+                if (document.head.contains(style)) {
+                    document.head.removeChild(style);
+                }
+            });
+        }
 
-        document.getElementById('dialog-open').addEventListener('click', async () => {
-            await this.openERPPortal(result);
-            document.body.removeChild(dialog);
-            document.head.removeChild(style);
-        });
+        if (openBtn) {
+            openBtn.addEventListener('click', async () => {
+                await this.openERPPortal(result);
+                if (document.body.contains(dialog)) {
+                    document.body.removeChild(dialog);
+                }
+                if (document.head.contains(style)) {
+                    document.head.removeChild(style);
+                }
+            });
+        }
 
         // Close on overlay click
         dialog.addEventListener('click', (e) => {
             if (e.target === dialog) {
-                document.body.removeChild(dialog);
-                document.head.removeChild(style);
+                if (document.body.contains(dialog)) {
+                    document.body.removeChild(dialog);
+                }
+                if (document.head.contains(style)) {
+                    document.head.removeChild(style);
+                }
             }
         });
 
         // Close on escape key
         const handleEscape = (e) => {
             if (e.key === 'Escape') {
-                document.body.removeChild(dialog);
-                document.head.removeChild(style);
+                if (document.body.contains(dialog)) {
+                    document.body.removeChild(dialog);
+                }
+                if (document.head.contains(style)) {
+                    document.head.removeChild(style);
+                }
                 document.removeEventListener('keydown', handleEscape);
             }
         };
