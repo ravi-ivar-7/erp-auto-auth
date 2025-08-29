@@ -31,6 +31,9 @@ class PrivacyPolicyDialog {
             // Setup event listeners
             this.setupEventListeners();
             
+            // Disable body scroll
+            document.body.style.overflow = 'hidden';
+            
             // Show with animation
             requestAnimationFrame(() => {
                 this.overlay.classList.add('show');
@@ -86,10 +89,10 @@ class PrivacyPolicyDialog {
             // Store decline in local storage
             await this.setPrivacyAcceptance(false);
             
-            // Show message and close extension
-            alert('Privacy policy must be accepted to use this extension. The extension will now close.');
+            // Close dialog
+            this.close();
             
-            // Close the extension window
+            // Close extension window
             window.close();
             
         } catch (error) {
@@ -132,14 +135,14 @@ class PrivacyPolicyDialog {
 
     close() {
         if (this.overlay) {
-            this.overlay.classList.remove('show');
+            // Re-enable body scroll
+            document.body.style.overflow = '';
             
+            this.overlay.classList.remove('show');
             setTimeout(() => {
-                if (this.overlay && this.overlay.parentNode) {
-                    this.overlay.parentNode.removeChild(this.overlay);
-                }
-                this.dialog = null;
+                this.overlay?.remove();
                 this.overlay = null;
+                this.dialog = null;
             }, 300);
         }
     }

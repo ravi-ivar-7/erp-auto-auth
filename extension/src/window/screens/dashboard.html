@@ -28,30 +28,30 @@
                                 <span class="step-text">Credentials</span>
                             </div>
                             <div class="progress-step" data-step="security">
-                                <span class="step-icon">🛡️</span>
-                                <span class="step-text">Security</span>
+                                <span class="step-icon">💬</span>
+                                <span class="step-text">Security QnA</span>
                             </div>
                             <div class="progress-step" data-step="otp">
                                 <span class="step-icon">📧</span>
                                 <span class="step-text">OTP</span>
                             </div>
                             <div class="progress-step" data-step="login">
-                                <span class="step-icon">✅</span>
+                                <span class="step-icon">🚪</span>
                                 <span class="step-text">Login</span>
                             </div>
                         </div>
-                        <div class="polling-status hidden">
-                            <div class="polling-info">
-                                <span class="polling-icon">⏳</span>
-                                <span id="polling-message" class="polling-text">Retrieving OTP from Gmail...</span>
-                            </div>
-                            <div class="polling-details">
-                                <span id="polling-timer" class="polling-timer">0:00</span>
-                                <span id="polling-attempts" class="polling-attempts">Attempt 1/10</span>
-                            </div>
-                            <div id="polling-error" class="polling-error hidden"></div>
-                        </div>
                         <div class="login-actions hidden">
+                            <div class="polling-status hidden">
+                                <div class="polling-info">
+                                    <span class="polling-icon">⏳</span>
+                                    <span id="polling-message" class="polling-text">Retrieving OTP from Gmail...</span>
+                                </div>
+                                <div class="polling-details">
+                                    <span id="polling-timer" class="polling-timer"></span>
+                                    <span id="polling-attempts" class="polling-attempts">Attempt 1/10</span>
+                                </div>
+                                <div id="polling-error" class="polling-error hidden"></div>
+                            </div>
                             <button id="cancel-login" class="btn-secondary">Cancel Login</button>
                         </div>
                     </div>

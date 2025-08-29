@@ -1,6 +1,5 @@
 import { GMAIL_CONFIG, ERROR_MESSAGES } from '../config/constants.js';
-import { CredentialService } from './CredentialService.js';
-import { StorageService } from './StorageService.js';
+import { CredentialService } from './CredentialService.js'; 
 
 export class GmailService {
     static async authenticate(customClientId = null) {
@@ -29,14 +28,6 @@ export class GmailService {
         }
     }
 
-    static async updateManifestClientId(clientId) {
-        // Chrome extensions cannot dynamically update manifest.json at runtime
-        // The client_id is read-only once the extension is loaded
-        // This method exists for future reference but doesn't actually work
-        console.warn('Cannot update manifest client_id at runtime. Extension must be reloaded with updated manifest.json');
-        return false;
-    }
-
     static async getUserInfo(token) {
         
         // Check if token is actually the token string or an object
@@ -61,11 +52,8 @@ export class GmailService {
                     }
                 });
                 
-                console.log('Response status:', response.status);
-                
                 if (response.ok) {
                     const userInfo = await response.json();
-                    console.log('User info received:', userInfo);
                     return userInfo;
                 } else {
                     const errorText = await response.text();
@@ -76,53 +64,73 @@ export class GmailService {
             }
         }
         
-        // If all endpoints fail, use a minimal user info based on token
-        console.warn('All userinfo endpoints failed, using minimal user info');
-        return {
-            email: 'authenticated@gmail.com',
-            verified_email: true,
-            id: 'chrome_extension_user'
-        };
+        // If all endpoints fail, throw an error instead of returning dummy data
+        throw new Error('Failed to retrieve user information from Gmail API. Please reconnect your Gmail account.');
     }
 
     static async getValidToken() {
-        const gmailData = await CredentialService.getGmailData();
+        let gmailData = await CredentialService.getGmailData();
         if (!gmailData || !gmailData.token) {
             throw new Error('No Gmail token found. Please connect Gmail in Settings.');
         }
+        
+        // Try to refresh token if it's expired
+        try {
+            const testResponse = await fetch('https://www.googleapis.com/oauth2/v1/userinfo', {
+                headers: { 'Authorization': `Bearer ${gmailData.token}` }
+            });
+            
+            if (testResponse.status === 401) { 
+                await chrome.identity.clearAllCachedAuthTokens();
+                
+                const newToken = await chrome.identity.getAuthToken({ interactive: false });
+                if (newToken) {
+                    gmailData.token = typeof newToken === 'object' ? newToken.token : newToken;
+                    await CredentialService.saveGmailData(gmailData);
+                } else {
+                    throw new Error('Failed to refresh token');
+                }
+            }
+        } catch (error) {
+            console.error('Token validation failed:', error);
+            if (error.message.includes('401') || error.message.includes('Invalid Credentials')) {
+                // Force re-authentication
+                await chrome.identity.clearAllCachedAuthTokens();
+                const newToken = await chrome.identity.getAuthToken({ interactive: true });
+                if (newToken) {
+                    gmailData.token = typeof newToken === 'object' ? newToken.token : newToken;
+                    await CredentialService.saveGmailData(gmailData);
+                }
+            }
+        }
+        
         return gmailData;
     }
 
     static async searchEmails(query, maxResults = 10) {
         const gmailData = await this.getValidToken();
         const token = gmailData.token;
-        console.log('Gmail token being used:', token ? token.substring(0, 20) + '...' : 'null');
         
         const searchUrl = new URL('https://gmail.googleapis.com/gmail/v1/users/me/messages');
         searchUrl.searchParams.set('q', query);
         searchUrl.searchParams.set('maxResults', maxResults.toString());
-        console.log('Gmail API URL:', searchUrl.toString());
         
         const response = await fetch(searchUrl, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         
-        console.log('Gmail API response status:', response.status);
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('Gmail API error details:', errorText);
             throw new Error(`Gmail API error: ${response.status} - ${errorText}`);
         }
         
         const data = await response.json();
-        console.log('Gmail API response data:', data);
-        return data.messages || [];
+            return data.messages || [];
     }
 
     static async getEmailContent(messageId) {
         const gmailData = await this.getValidToken();
         const token = gmailData.token;
-        console.log('Fetching email content for message ID:', messageId);
         
         // Fetch with format=full to get complete email content
         const response = await fetch(
@@ -130,15 +138,12 @@ export class GmailService {
             { headers: { Authorization: `Bearer ${token}` } }
         );
         
-        console.log('Email content response status:', response.status);
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('Email fetch error:', errorText);
             throw new Error(`Failed to get email: ${response.status} - ${errorText}`);
         }
         
         const emailData = await response.json();
-        console.log('RAW EMAIL DATA:', JSON.stringify(emailData, null, 2));
         return emailData;
     }
 
@@ -155,8 +160,6 @@ export class GmailService {
                 }
             }
             
-            console.log('Email text content:', text.substring(0, 500));
-            
             const otpPatterns = [
                 /OTP[:\s]*(\d{4,8})/i,
                 /verification code[:\s]*(\d{4,8})/i,
@@ -166,17 +169,12 @@ export class GmailService {
                 /(\d{6})/g
             ];
             
-            console.log('Trying OTP extraction patterns on text:', text);
-            
             for (let i = 0; i < otpPatterns.length; i++) {
                 const pattern = otpPatterns[i];
                 const match = text.match(pattern);
-                console.log(`Pattern ${i + 1} (${pattern}):`, match);
                 if (match) {
                     const otp = match[1] || match[0];
-                    console.log(`Found potential OTP: "${otp}" (length: ${otp.length})`);
                     if (otp.length >= 4 && otp.length <= 8 && /^\d+$/.test(otp)) {
-                        console.log(`Valid OTP extracted: ${otp}`);
                         return otp;
                     }
                 }
@@ -191,9 +189,8 @@ export class GmailService {
 
     static async getLatestOTP(maxAttempts = 10, intervalMs = 5000, onProgress = null) {
         const query = GMAIL_CONFIG.OTP_SEARCH_QUERY;
-        console.log('Starting OTP search with query:', query);
         const startTime = Date.now();
-        const otpRequestTime = Date.now(); // Track when OTP was requested
+        const otpRequestTime = Date.now();
         
         for (let attempt = 1; attempt <= maxAttempts; attempt++) {
             try {
@@ -202,9 +199,6 @@ export class GmailService {
                 const seconds = elapsed % 60;
                 const timeStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
                 
-                console.log(`Polling for OTP - Attempt ${attempt}/${maxAttempts}`);
-                
-                // Update progress callback with polling status
                 onProgress?.('polling', {
                     message: 'Retrieving OTP from Gmail...',
                     attempt: attempt,
@@ -214,7 +208,6 @@ export class GmailService {
                 });
                 
                 const messages = await this.searchEmails(query, 5);
-                console.log(`Found ${messages.length} messages matching query:`, query);
                 
                 if (messages.length > 0) {
                     onProgress?.('polling', {
@@ -225,7 +218,6 @@ export class GmailService {
                         status: 'extracting'
                     });
                     
-                    // Check all recent emails for OTP - just get the latest one
                     const latestMessage = messages[0];
                     
                     try {
@@ -233,7 +225,6 @@ export class GmailService {
                         const otp = this.extractOTPFromEmail(emailContent);
                         
                         if (otp) {
-                            console.log('OTP found:', otp);
                             onProgress?.('polling', {
                                 message: 'OTP retrieved successfully!',
                                 attempt: attempt,
@@ -241,6 +232,18 @@ export class GmailService {
                                 timer: timeStr,
                                 status: 'success'
                             });
+                            
+                            // Show verifying status after OTP success
+                            setTimeout(() => {
+                                onProgress?.('polling', {
+                                    message: 'Verifying OTP with ERP...',
+                                    attempt: attempt,
+                                    maxAttempts: maxAttempts,
+                                    timer: timeStr,
+                                    status: 'verifying'
+                                });
+                            }, 500);
+                            
                             return otp;
                         } else {
                             // console.log('No OTP found in latest email');
@@ -262,7 +265,6 @@ export class GmailService {
                     await new Promise(resolve => setTimeout(resolve, intervalMs));
                 }
             } catch (error) {
-                console.error('Error polling for OTP:', error);
                 const elapsed = Math.floor((Date.now() - startTime) / 1000);
                 const minutes = Math.floor(elapsed / 60);
                 const seconds = elapsed % 60;

@@ -22,6 +22,12 @@ export class ERPCredentialsDialog {
             // Create dialog
             this.dialog = document.createElement('div');
             this.dialog.innerHTML = htmlContent;
+            this.dialog.style.zIndex = '99999';
+            this.dialog.style.position = 'fixed';
+            this.dialog.style.top = '0';
+            this.dialog.style.left = '0';
+            this.dialog.style.width = '100%';
+            this.dialog.style.height = '100%';
 
             // Create style
             this.style = document.createElement('style');
@@ -31,11 +37,24 @@ export class ERPCredentialsDialog {
             document.head.appendChild(this.style);
             document.body.appendChild(this.dialog);
 
+            // Disable body scroll
+            document.body.style.overflow = 'hidden';
+
             // Load ERP session data
             await this.loadData();
             
             // Setup event listeners
             this.setupEventListeners();
+            
+            // Show with animation
+            requestAnimationFrame(() => {
+                const overlay = this.dialog.querySelector('.credentials-overlay');
+                if (overlay) {
+                    overlay.classList.add('show');
+                } else {
+                    this.dialog.classList.add('show');
+                }
+            });
 
         } catch (error) {
             console.error('Failed to show credentials dialog:', error);
@@ -234,22 +253,26 @@ export class ERPCredentialsDialog {
     }
 
     close() {
-        // Clear time interval
-        if (this.timeInterval) {
-            clearInterval(this.timeInterval);
-        }
-
-        // Remove event listener
-        if (this.handleEscape) {
-            document.removeEventListener('keydown', this.handleEscape);
-        }
-
-        // Remove dialog and style from DOM
         if (this.dialog) {
-            this.dialog.remove();
+            // Re-enable body scroll
+            document.body.style.overflow = '';
+            
+            this.dialog.classList.remove('show');
+            setTimeout(() => {
+                this.dialog?.remove();
+                this.dialog = null;
+            }, 300);
         }
         if (this.style) {
             this.style.remove();
+            this.style = null;
+        }
+        if (this.timeInterval) {
+            clearInterval(this.timeInterval);
+            this.timeInterval = null;
+        }
+        if (this.handleEscape) {
+            document.removeEventListener('keydown', this.handleEscape);
         }
     }
 }

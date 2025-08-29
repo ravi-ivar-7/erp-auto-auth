@@ -474,7 +474,10 @@ export class ERPApiService {
                         }
                     });
                     
-                    onProgress?.('credentials', `Submitting login with OTP (attempt ${attempts + 1})`);
+                    onProgress?.('polling', {
+                        message: 'Logging into ERP system...',
+                        status: 'logging_in'
+                    });
                     loginResult = await this.submitLogin(credentials, sessionToken, otp, securityAnswer);
                     
                     // If we get here, login was successful
