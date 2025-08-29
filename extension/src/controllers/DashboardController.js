@@ -72,7 +72,11 @@ export class DashboardController {
         useSessionBtn?.addEventListener('click', () => this.useLastSession());
         
         const clearSessionBtn = document.getElementById('clear-session-btn');
-        clearSessionBtn?.addEventListener('click', () => this.clearSession());
+        clearSessionBtn?.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this.clearSession();
+        });
         
         const viewCredentialsBtn = document.getElementById('view-credentials-btn');
         viewCredentialsBtn?.addEventListener('click', () => this.showERPCredentialsDialog());
