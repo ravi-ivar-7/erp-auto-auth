@@ -92,7 +92,10 @@ class PrivacyPolicyDialog {
             // Close dialog
             this.close();
             
-            // Close extension window
+            // Show alert before closing
+            alert('Privacy policy declined. The extension will now close.');
+            
+            // Close extension window after alert
             window.close();
             
         } catch (error) {
