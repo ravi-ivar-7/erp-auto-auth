@@ -1,7 +1,7 @@
 <div class="screen" id="setup-screen">
     <div class="setup-container">
         <div class="setup-header">
-            <h1>Setup Wizard</h1>
+            <h1>Setup EAA</h1>
             <div class="setup-progress">
                 <div class="progress-dots">
                     <span class="dot active" data-step="1"></span>
@@ -54,16 +54,16 @@
                 </div>
                 <div class="gmail-setup">
                     <div class="info-box">
-                        <p>We'll securely connect to your Gmail to automatically retrieve OTP codes during login.</p>
-                    </div>
-                    <div class="form-group">
-                        <label for="custom-client-id">Custom Client ID (Optional)</label>
-                        <input type="text" id="custom-client-id" placeholder="Leave empty to use default">
-                        <small class="form-hint">Only enter if you have your own Google OAuth2 client ID</small>
+                        <p>Connect Gmail to automatically retrieve OTP codes during login.</p>
+                        <p class="oauth-info">Read-only access • Secure storage • Revocable anytime</p>
                     </div>
                     <div class="gmail-actions">
-                        <button id="gmail-connect" class="btn-primary">Connect Gmail Account</button>
-                        <button id="reload-extension" class="btn-secondary btn-small" style="display: none;">Reload Extension</button>
+                        <button id="gmail-connect" class="btn-primary">
+                            <span>🔗 Connect Gmail</span>
+                        </button>
+                        <a href="https://github.com/ravi-ivar-7/erp-auto-auth/blob/main/docs/google-oauth-setup.md" target="_blank" class="btn-secondary github-link">
+                            <span>⚙️ Setup Custom OAuth</span>
+                        </a>
                     </div>
                     <div class="gmail-status"></div>
                 </div>

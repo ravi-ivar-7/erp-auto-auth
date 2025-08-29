@@ -140,28 +140,45 @@ export class SetupController {
         const container = document.querySelector('.security-questions');
         if (!container) return;
         
-        
+        const questionNumber = container.children.length + 1;
         const questionDiv = document.createElement('div');
-        questionDiv.className = 'security-question-pair';
+        questionDiv.className = 'security-question-card';
         questionDiv.innerHTML = `
-            <div class="form-group">
+            <div class="card-header">
+                <span class="question-number">Q${questionNumber}</span>
+                <button type="button" class="remove-question">&times;</button>
+            </div>
+            <div class="question-field">
                 <label>Security Question</label>
                 <input type="text" class="security-question" placeholder="What is your mother's maiden name?" required>
             </div>
-            <div class="form-group">
+            <div class="answer-field">
                 <label>Answer</label>
                 <input type="text" class="security-answer" placeholder="Your answer" required>
             </div>
-            <button type="button" class="remove-question">&times;</button>
         `;
         
         // Add remove functionality
         const removeBtn = questionDiv.querySelector('.remove-question');
         removeBtn.addEventListener('click', () => {
             questionDiv.remove();
+            this.updateQuestionNumbers();
         });
         
         container.appendChild(questionDiv);
+    }
+
+    updateQuestionNumbers() {
+        const container = document.querySelector('.security-questions');
+        if (!container) return;
+        
+        const questionCards = container.querySelectorAll('.security-question-card');
+        questionCards.forEach((card, index) => {
+            const numberSpan = card.querySelector('.question-number');
+            if (numberSpan) {
+                numberSpan.textContent = `Q${index + 1}`;
+            }
+        });
     }
 
     async saveSetupData() {
@@ -209,14 +226,7 @@ export class SetupController {
         // Check Gmail data from CredentialService
         this.checkAndPrefillGmailStatus();
         
-        if (this.userData.customClientId) {
-            setTimeout(() => {
-                const customClientIdInput = document.getElementById('custom-client-id');
-                if (customClientIdInput) {
-                    customClientIdInput.value = this.userData.customClientId;
-                }
-            }, 100);
-        }
+        // Custom client ID support removed - using default OAuth client only
     }
 
     prefillSecurityQuestions() {
@@ -230,22 +240,26 @@ export class SetupController {
         
         this.userData.securityQuestions.forEach((qa, index) => {
             const questionDiv = document.createElement('div');
-            questionDiv.className = 'security-question-pair';
+            questionDiv.className = 'security-question-card';
             questionDiv.innerHTML = `
-                <div class="form-group">
+                <div class="card-header">
+                    <span class="question-number">Q${index + 1}</span>
+                    <button type="button" class="remove-question">&times;</button>
+                </div>
+                <div class="question-field">
                     <label>Security Question</label>
                     <input type="text" class="security-question" value="${qa.question || ''}" required>
                 </div>
-                <div class="form-group">
+                <div class="answer-field">
                     <label>Answer</label>
                     <input type="text" class="security-answer" value="${qa.answer || ''}" required>
                 </div>
-                <button type="button" class="remove-question">&times;</button>
             `;
             
             const removeBtn = questionDiv.querySelector('.remove-question');
             removeBtn.addEventListener('click', () => {
                 questionDiv.remove();
+                this.updateQuestionNumbers();
             });
             
             container.appendChild(questionDiv);
@@ -279,11 +293,11 @@ export class SetupController {
         if (e) e.preventDefault();
         
         const securityQuestions = [];
-        const pairs = document.querySelectorAll('.security-question-pair');
+        const cards = document.querySelectorAll('.security-question-card');
         
-        pairs.forEach((pair, index) => {
-            const question = pair.querySelector('.security-question').value.trim();
-            const answer = pair.querySelector('.security-answer').value.trim();
+        cards.forEach((card, index) => {
+            const question = card.querySelector('.security-question').value.trim();
+            const answer = card.querySelector('.security-answer').value.trim();
             
             if (question && answer) {
                 securityQuestions.push({ question, answer });
@@ -304,38 +318,19 @@ export class SetupController {
         try {
             const button = document.getElementById('gmail-connect');
             const status = document.querySelector('.gmail-status');
-            const customClientIdInput = document.getElementById('custom-client-id');
             
             button.disabled = true;
-            button.textContent = 'Connecting...';
+            button.innerHTML = '<span>🔄 Connecting...</span>';
             
-            // Store custom client ID if provided
-            const customClientId = customClientIdInput?.value?.trim();
-            if (customClientId && customClientId !== GMAIL_CONFIG.DEFAULT_CLIENT_ID) {
-                this.userData.customClientId = customClientId;
-                await this.saveSetupData();
-                
-                // Show instructions for manual manifest update
-                status.className = 'gmail-status error';
-                status.innerHTML = `
-                    <strong>Manual Setup Required:</strong><br>
-                    1. Update manifest.json oauth2.client_id with: <code>${customClientId}</code><br>
-                    2. Reload the extension<br>
-                    3. Try connecting again
-                `;
-                button.disabled = false;
-                button.textContent = 'Connect Gmail Account';
-                return;
-            }
+            // Use default OAuth client (no custom client ID support)
+            const tokenData = await GmailService.authenticate();
             
-            const tokenData = await GmailService.authenticate(customClientId);
-            
-            // Save Gmail data using CredentialService instead of setupData
+            // Save Gmail data using CredentialService
             await CredentialService.saveGmailData(tokenData);
             
             status.className = 'gmail-status connected';
             status.textContent = `✓ Connected: ${tokenData.email}`;
-            button.textContent = 'Connected';
+            button.innerHTML = '<span>✅ Connected</span>';
             
             // Complete setup and go to main page
             await this.completeSetup();
@@ -347,7 +342,7 @@ export class SetupController {
             const status = document.querySelector('.gmail-status');
             
             button.disabled = false;
-            button.textContent = 'Retry Connection';
+            button.innerHTML = '<span>🔗 Retry Connection</span>';
             status.className = 'gmail-status error';
             status.textContent = '✗ Connection failed. Please try again.';
         }
