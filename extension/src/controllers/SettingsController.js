@@ -5,7 +5,11 @@ import { GmailService } from '../services/GmailService.js';
 export class SettingsController {
     constructor(app) {
         this.app = app;
-        this.editMode = {};
+        this.editMode = {
+            roll: false,
+            password: false,
+            questions: false
+        };
     }
 
     async init() {
@@ -13,6 +17,14 @@ export class SettingsController {
     }
 
     async onScreenLoad() {
+        // Reset edit mode and listeners when screen loads
+        this.editMode = {
+            roll: false,
+            password: false,
+            questions: false
+        };
+        this.listenersAttached = false;
+        
         await this.loadSettings();
         this.setupEventListeners();
     }
@@ -43,18 +55,22 @@ export class SettingsController {
             const gmailEmail = document.getElementById('gmail-email');
             const gmailStatus = document.getElementById('gmail-status');
             
+            const setupBtn = document.getElementById('setup-gmail');
+            
             if (gmailData && gmailData.token) {
                 // Gmail is connected - show disconnect button only
                 gmailEmail.textContent = gmailData.email || 'Connected';
                 gmailStatus.textContent = 'Connected';
                 disconnectBtn.style.display = 'inline-block';
                 reconnectBtn.style.display = 'none';
+                setupBtn.style.display = 'none';
             } else {
-                // Gmail is not connected - hide both buttons
+                // Gmail is not connected - show setup button
                 gmailEmail.textContent = 'Not connected';
                 gmailStatus.textContent = 'Disconnected';
                 disconnectBtn.style.display = 'none';
                 reconnectBtn.style.display = 'none';
+                setupBtn.style.display = 'inline-block';
             }
         } catch (error) {
             console.error('Failed to load Gmail info:', error);
@@ -90,6 +106,11 @@ export class SettingsController {
     }
 
     setupEventListeners() {
+        // Prevent duplicate event listeners
+        if (this.listenersAttached) return;
+        this.listenersAttached = true;
+        
+        
         // Password toggle
         const passwordBtn = document.getElementById('show-password');
         if (passwordBtn) {
@@ -98,8 +119,32 @@ export class SettingsController {
             });
         }
         
+        // Edit buttons
+        const editRollBtn = document.getElementById('edit-roll-btn');
+        const editPasswordBtn = document.getElementById('edit-password-btn');
+        const editQuestionsBtn = document.getElementById('edit-questions-btn');
+        
+        if (editRollBtn) {
+            editRollBtn.addEventListener('click', () => {
+                this.toggleEditMode('roll');
+            });
+        }
+        
+        if (editPasswordBtn) {
+            editPasswordBtn.addEventListener('click', () => {
+                this.toggleEditMode('password');
+            });
+        }
+        
+        if (editQuestionsBtn) {
+            editQuestionsBtn.addEventListener('click', () => {
+                this.toggleEditMode('questions');
+            });
+        }
+        
         document.getElementById('disconnect-gmail')?.addEventListener('click', () => this.handleGmailDisconnect());
         document.getElementById('reconnect-gmail')?.addEventListener('click', () => this.handleGmailReconnect());
+        document.getElementById('setup-gmail')?.addEventListener('click', () => this.handleGmailSetup());
         document.getElementById('finish-setup')?.addEventListener('click', () => this.handleFinishSetup());
         document.getElementById('back-btn')?.addEventListener('click', () => this.previousStep());
         document.getElementById('next-btn')?.addEventListener('click', () => this.handleNextStep());
@@ -180,8 +225,273 @@ export class SettingsController {
         }
     }
 
-    async updateSecurityQuestions() {
-        this.app.showError('Security question updates not yet implemented');
+    toggleEditMode(field) {
+        switch (field) {
+            case 'roll':
+                this.toggleRollEdit();
+                break;
+            case 'password':
+                this.togglePasswordEdit();
+                break;
+            case 'questions':
+                this.toggleQuestionsEdit();
+                break;
+        }
+    }
+
+    toggleRollEdit() {
+        
+        const valueSpan = document.getElementById('settings-roll');
+        const input = document.getElementById('edit-roll');
+        const button = document.getElementById('edit-roll-btn');
+        
+        
+        if (!valueSpan || !input || !button) {
+            console.error('Missing elements for roll edit');
+            this.app.showError('Edit elements not found');
+            return;
+        }
+        
+        if (!this.editMode.roll) {
+            // Enter edit mode
+            input.value = this.userData?.rollNumber || '';
+            valueSpan.style.display = 'none';
+            input.style.display = 'inline-block';
+            input.focus();
+            button.textContent = '💾';
+            this.editMode.roll = true;
+            
+            // Handle Enter key
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') this.saveRollEdit();
+            });
+        } else {
+            // Save changes
+            this.saveRollEdit();
+        }
+    }
+
+    async saveRollEdit() {
+        const input = document.getElementById('edit-roll');
+        const valueSpan = document.getElementById('settings-roll');
+        const button = document.getElementById('edit-roll-btn');
+        
+        
+        try {
+            const newRoll = input.value.trim();
+            
+            if (!newRoll) {
+                this.app.showError('Roll number cannot be empty');
+                return;
+            }
+            
+            // Update in storage
+            await CredentialService.updateUserData({ rollNumber: newRoll });
+            this.userData.rollNumber = newRoll;
+            
+            // Update UI
+            valueSpan.textContent = newRoll;
+            valueSpan.style.display = 'inline-block';
+            input.style.display = 'none';
+            button.textContent = '✏️';
+            this.editMode.roll = false;
+            
+            this.app.showSuccess('Roll number updated');
+        } catch (error) {
+            console.error('Failed to update roll number:', error);
+            this.app.showError('Failed to update roll number');
+        }
+    }
+
+    togglePasswordEdit() {
+        const valueSpan = document.getElementById('settings-password');
+        const input = document.getElementById('edit-password');
+        const button = document.getElementById('edit-password-btn');
+        
+        if (!this.editMode.password) {
+            // Enter edit mode
+            input.value = this.userData?.password || '';
+            input.type = 'text'; // Make password visible during editing
+            valueSpan.style.display = 'none';
+            input.style.display = 'inline-block';
+            input.focus();
+            button.textContent = '💾';
+            this.editMode.password = true;
+            
+            // Handle Enter key
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') this.savePasswordEdit();
+            });
+        } else {
+            // Save changes
+            this.savePasswordEdit();
+        }
+    }
+
+    async savePasswordEdit() {
+        const input = document.getElementById('edit-password');
+        const valueSpan = document.getElementById('settings-password');
+        const button = document.getElementById('edit-password-btn');
+        
+        try {
+            const newPassword = input.value.trim();
+            if (!newPassword) {
+                this.app.showError('Password cannot be empty');
+                return;
+            }
+            
+            if (newPassword.length < 6) {
+                this.app.showError('Password must be at least 6 characters');
+                return;
+            }
+            
+            // Update in storage
+            await CredentialService.updateUserData({ password: newPassword });
+            this.userData.password = newPassword;
+            
+            // Update UI
+            valueSpan.textContent = '••••••••';
+            valueSpan.style.display = 'inline-block';
+            input.style.display = 'none';
+            input.type = 'password'; // Hide password again after editing
+            button.textContent = '✏️';
+            this.editMode.password = false;
+            
+            this.app.showSuccess('Password updated');
+        } catch (error) {
+            console.error('Failed to update password:', error);
+            this.app.showError('Failed to update password');
+        }
+    }
+
+    toggleQuestionsEdit() {
+        const button = document.getElementById('edit-questions-btn');
+        const container = document.getElementById('security-questions-list');
+        
+        if (!this.editMode.questions) {
+            // Enter edit mode
+            this.renderEditableQuestions();
+            button.textContent = '💾 Save';
+            this.editMode.questions = true;
+        } else {
+            // Save changes
+            this.saveQuestionsEdit();
+        }
+    }
+
+    renderEditableQuestions() {
+        const container = document.getElementById('security-questions-list');
+        const questions = this.userData?.securityQuestions || [];
+        
+        container.innerHTML = '';
+        
+        questions.forEach((q, index) => {
+            const questionDiv = document.createElement('div');
+            questionDiv.className = 'security-question-edit';
+            questionDiv.innerHTML = `
+                <div class="question-edit-row">
+                    <label>Question ${index + 1}:</label>
+                    <input type="text" class="question-input" data-index="${index}" value="${q.question}">
+                </div>
+                <div class="answer-edit-row">
+                    <label>Answer:</label>
+                    <input type="text" class="answer-input" data-index="${index}" value="${q.answer}">
+                    <button class="btn-mini btn-danger delete-question">🗑️</button>
+                </div>
+            `;
+            container.appendChild(questionDiv);
+            
+            // Add event listener for delete button
+            const deleteBtn = questionDiv.querySelector('.delete-question');
+            deleteBtn.addEventListener('click', () => {
+                questionDiv.remove();
+            });
+        });
+        
+        // Add button to add new question
+        const addButton = document.createElement('button');
+        addButton.className = 'btn-mini add-question-btn';
+        addButton.id = 'add-question-btn';
+        addButton.textContent = '➕ Add Question';
+        addButton.addEventListener('click', () => this.addNewQuestion());
+        container.appendChild(addButton);
+    }
+
+    addNewQuestion() {
+        const container = document.getElementById('security-questions-list');
+        const questionCount = container.querySelectorAll('.security-question-edit').length;
+        
+        
+        const questionDiv = document.createElement('div');
+        questionDiv.className = 'security-question-edit';
+        questionDiv.innerHTML = `
+            <div class="question-edit-row">
+                <label>Question ${questionCount + 1}:</label>
+                <input type="text" class="question-input" data-index="${questionCount}" placeholder="Enter security question">
+            </div>
+            <div class="answer-edit-row">
+                <label>Answer:</label>
+                <input type="text" class="answer-input" data-index="${questionCount}" placeholder="Enter answer">
+                <button class="btn-mini btn-danger delete-question">🗑️</button>
+            </div>
+        `;
+        
+        // Add event listener for delete button
+        const deleteBtn = questionDiv.querySelector('.delete-question');
+        deleteBtn.addEventListener('click', () => {
+            questionDiv.remove();
+        });
+        
+        // Insert before the add button using specific ID
+        const addButton = document.getElementById('add-question-btn');
+        if (addButton && addButton.parentNode === container) {
+            container.insertBefore(questionDiv, addButton);
+        } else {
+            container.appendChild(questionDiv);
+        }
+    }
+
+    async saveQuestionsEdit() {
+        const container = document.getElementById('security-questions-list');
+        const questionInputs = container.querySelectorAll('.question-input');
+        const answerInputs = container.querySelectorAll('.answer-input');
+        const button = document.getElementById('edit-questions-btn');
+        
+        try {
+            const newQuestions = [];
+            
+            for (let i = 0; i < questionInputs.length; i++) {
+                const question = questionInputs[i].value.trim();
+                const answer = answerInputs[i].value.trim();
+                
+                if (question && answer) {
+                    newQuestions.push({
+                        question,
+                        answer,
+                        id: CredentialService.generateSecurityQuestionId(question)
+                    });
+                }
+            }
+            
+            if (newQuestions.length === 0) {
+                this.app.showError('At least one security question is required');
+                return;
+            }
+            
+            // Update in storage
+            await CredentialService.updateUserData({ securityQuestions: newQuestions });
+            this.userData.securityQuestions = newQuestions;
+            
+            // Update UI
+            this.loadSecurityQuestions(newQuestions);
+            button.textContent = '✏️ Edit';
+            this.editMode.questions = false;
+            
+            this.app.showSuccess('Security questions updated');
+        } catch (error) {
+            console.error('Failed to update security questions:', error);
+            this.app.showError('Failed to update security questions');
+        }
     }
 
     async resetData() {
@@ -214,7 +524,6 @@ export class SettingsController {
             try {
                 await chrome.identity.clearAllCachedAuthTokens();
             } catch (error) {
-                console.log('Failed to clear cached tokens:', error);
             }
             
             // Update UI
@@ -243,5 +552,18 @@ export class SettingsController {
             console.error('Failed to reconnect Gmail:', error);
             this.showFeedback('✗ Connection failed', true);
         }
+    }
+    
+    async handleGmailSetup() {
+        // Navigate to setup screen and jump to Gmail step
+        this.app.navigateToScreen('setup');
+        
+        // Wait for setup screen to load, then navigate to Gmail step
+        setTimeout(() => {
+            const setupController = this.app.getController('setup');
+            if (setupController && setupController.navigateToStep) {
+                setupController.navigateToStep(3); // Gmail is step 3
+            }
+        }, 100);
     }
 }

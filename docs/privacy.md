@@ -25,6 +25,7 @@ ERP Auto Auth (EAA) is a Chrome extension designed to automate login to the IIT 
 
 ### Local Storage Only
 - **All data is stored locally** on your device using Chrome's secure storage API
+- **AES-GCM encrypted storage** - credentials protected with military-grade encryption
 - **No cloud storage** - your credentials never leave your computer
 - **No external servers** - we don't operate any backend servers
 
@@ -44,7 +45,7 @@ Your data is used **exclusively** for:
 ## Permissions Explained
 
 ### Required Permissions
-- **`storage`**: Store encrypted credentials locally
+- **`storage`**: Store AES-GCM encrypted credentials locally
 - **`tabs`**: Navigate to ERP login pages
 - **`identity`**: Gmail OAuth2 authentication
 - **`identity.email`**: Access your email address for account verification
@@ -81,10 +82,17 @@ Your data is used **exclusively** for:
 
 ## Security Measures
 
+### Encryption
+- **AES-GCM Encryption**: All sensitive credentials encrypted using AES-GCM algorithm
+- **Local Key Management**: Encryption keys generated and stored locally on your device
+- **No Plain Text Storage**: Passwords and tokens never stored in plain text
+- **Automatic Decryption**: Data decrypted only when needed for authentication
+
 ### Access Controls
 - **Local device only** - no remote access possible
 - **Chrome security model** - isolated from other extensions
 - **User authentication** required for sensitive operations
+- **Encrypted storage** - even local data is protected with strong encryption
 
 ## User Rights
 

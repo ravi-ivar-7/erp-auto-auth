@@ -38,14 +38,11 @@ export class GmailService {
     }
 
     static async getUserInfo(token) {
-        console.log('Getting user info with token:', token ? 'Present' : 'Missing');
-        console.log('Token value:', token);
         
         // Check if token is actually the token string or an object
         let actualToken = token;
         if (typeof token === 'object' && token.token) {
             actualToken = token.token;
-            console.log('Extracted token from object:', actualToken);
         }
         
         // Try userinfo endpoints with the actual token
@@ -56,8 +53,6 @@ export class GmailService {
         
         for (const endpoint of endpoints) {
             try {
-                console.log('Trying endpoint:', endpoint);
-                console.log('Using token:', actualToken.substring(0, 20) + '...');
                 
                 const response = await fetch(endpoint, {
                     headers: { 
@@ -74,7 +69,6 @@ export class GmailService {
                     return userInfo;
                 } else {
                     const errorText = await response.text();
-                    console.log('Endpoint error:', response.status, errorText);
                 }
             } catch (error) {
                 console.log('Endpoint failed:', endpoint, error);
@@ -151,7 +145,6 @@ export class GmailService {
     static extractOTPFromEmail(emailContent) {
         try {
             let text = '';
-            console.log('Email content:', emailContent);
             if (emailContent.payload.body.data) {
                 text = atob(emailContent.payload.body.data.replace(/-/g, '+').replace(/_/g, '/'));
             } else if (emailContent.payload.parts) {
@@ -234,7 +227,6 @@ export class GmailService {
                     
                     // Check all recent emails for OTP - just get the latest one
                     const latestMessage = messages[0];
-                    console.log('Getting content for latest message:', latestMessage.id);
                     
                     try {
                         const emailContent = await this.getEmailContent(latestMessage.id);
@@ -251,14 +243,13 @@ export class GmailService {
                             });
                             return otp;
                         } else {
-                            console.log('No OTP found in latest email');
+                            // console.log('No OTP found in latest email');
                         }
                     } catch (error) {
                         console.error('Error processing latest message:', error);
                     }
                 }
                 
-                console.log(`No OTP found, waiting ${intervalMs}ms before next attempt...`);
                 onProgress?.('polling', {
                     message: `No OTP yet, retrying in ${intervalMs/1000}s...`,
                     attempt: attempt,

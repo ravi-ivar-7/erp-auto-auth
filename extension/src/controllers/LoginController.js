@@ -27,20 +27,16 @@ export class LoginController {
     async startLogin() {
         if (this.loginInProgress) return;
         
-        console.log('LoginController: Starting login process');
         this.loginInProgress = true;
         
         try {
             // Don't navigate to login screen, stay on dashboard and show progress
             this.showProgressOnDashboard();
             
-            console.log('LoginController: Calling ERPApiService.performFullLogin');
             const result = await ERPApiService.performFullLogin(null, (step, message) => {
-                console.log(`Login progress: ${step} - ${message}`);
                 this.updateDashboardProgress(step, message);
             });
             
-            console.log('Login result:', result);
             
             if (result.success) {
                 await StorageService.set('last_login', new Date().toISOString());
@@ -50,7 +46,6 @@ export class LoginController {
             }
         } catch (error) {
             if (error.message.includes('Invalid OTP') || error.message.includes('security question') || error.message.includes('ANSWER_MISMATCH')) {
-                console.warn('Login failed due to user input:', error.message);
             } else {
                 console.error('Login failed:', error);
             }

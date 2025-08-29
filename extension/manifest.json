@@ -20,6 +20,18 @@
     "https://accounts.google.com/*",
     "https://gmail.googleapis.com/*"
   ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "src/window/screens/*.html",
+        "src/window/styles/*.css",
+        "src/window/dialogs/*.js",
+        "src/window/dialogs/*.html",
+        "docs/privacy.md"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ],
   "background": {
     "service_worker": "src/background.js"
   },
@@ -33,7 +45,7 @@
     }
   },
   "oauth2": {
-    "client_id": "47059489767-er6jn7e2b8bqmo5foljmmitne2ttlhlm.apps.googleusercontent.com",
+    "client_id": "87033747871-houf0a0g47ei5e4l7s0v4ssu5lt5c6qv.apps.googleusercontent.com",
     "scopes": [
       "https://www.googleapis.com/auth/userinfo.email",
       "https://www.googleapis.com/auth/userinfo.profile",

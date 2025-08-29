@@ -14,11 +14,15 @@
                 <div class="compact-setting">
                     <span class="setting-label">Roll:</span>
                     <span id="settings-roll" class="setting-value">Loading...</span>
+                    <input type="text" id="edit-roll" class="setting-input" style="display: none;">
+                    <button class="btn-mini" id="edit-roll-btn">✏️</button>
                 </div>
                 <div class="compact-setting">
                     <span class="setting-label">Pass:</span>
                     <span id="settings-password" class="setting-value">••••••••</span>
+                    <input type="password" id="edit-password" class="setting-input" style="display: none;">
                     <button class="btn-mini" id="show-password">👁️</button>
+                    <button class="btn-mini" id="edit-password-btn">✏️</button>
                 </div>
             </div>
             
@@ -33,11 +37,15 @@
                     <span id="gmail-status" class="setting-value">Disconnected</span>
                     <button class="btn-mini btn-danger" id="disconnect-gmail" style="display: none;">Disconnect</button>
                     <button class="btn-mini" id="reconnect-gmail" style="display: none;">Reconnect</button>
+                    <button class="btn-mini btn-primary" id="setup-gmail" style="display: none;">🔧 Setup Gmail</button>
                 </div>
             </div>
             
             <div class="settings-section">
-                <h3>Security Questions</h3>
+                <div class="section-header">
+                    <h3>Security Questions</h3>
+                    <button class="btn-mini" id="edit-questions-btn">✏️ Edit</button>
+                </div>
                 <div id="security-questions-list" class="compact-list"></div>
             </div>
             

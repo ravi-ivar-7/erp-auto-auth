@@ -11,9 +11,26 @@ export class DashboardController {
     }
 
     async onScreenLoad() {
+        // Check privacy policy first
+        await this.checkPrivacyPolicy();
+        
         await this.loadDashboardData();
         await this.checkERPSession();
         this.setupEventListeners();
+    }
+
+    async checkPrivacyPolicy() {
+        try {
+            const { PrivacyPolicyDialog } = await import('../window/dialogs/PrivacyPolicyDialog.js');
+            
+            const isRequired = await PrivacyPolicyDialog.isPrivacyPolicyRequired();
+            if (isRequired) {
+                const dialog = new PrivacyPolicyDialog(this.app);
+                await dialog.show();
+            }
+        } catch (error) {
+            console.error('Failed to check privacy policy:', error);
+        }
     }
 
     async loadDashboardData() {
@@ -56,6 +73,9 @@ export class DashboardController {
         
         const clearSessionBtn = document.getElementById('clear-session-btn');
         clearSessionBtn?.addEventListener('click', () => this.clearSession());
+        
+        const viewCredentialsBtn = document.getElementById('view-credentials-btn');
+        viewCredentialsBtn?.addEventListener('click', () => this.showERPCredentialsDialog());
     }
 
     async startLogin() {
@@ -127,12 +147,7 @@ export class DashboardController {
                 this.showERPAccessDialog(result);
             }
         } catch (error) {
-            if (error.message.includes('Invalid OTP') || error.message.includes('security question') || error.message.includes('ANSWER_MISMATCH')) {
-                console.warn('Login start failed due to user input:', error.message);
-            } else {
-                console.error('Login start failed:', error);
-            }
-            this.app.showError('Failed to start login: ' + error.message);
+            this.app.handleDetailedError(error);
             this.hideLoginProgress();
         }
     }
@@ -152,8 +167,16 @@ export class DashboardController {
             
             if (session && quickAccessCard) {
                 const sessionDate = new Date(session.timestamp);
-                sessionTime.textContent = `Session from: ${sessionDate.toLocaleString()}`;
+                const timeRemaining = await CredentialService.getSessionTimeRemaining();
+                const formattedTime = CredentialService.formatTimeRemaining(timeRemaining);
+                
+                sessionTime.textContent = `Session from: ${sessionDate.toLocaleString()} (Expires in: ${formattedTime})`;
                 quickAccessCard.classList.remove('hidden');
+                
+                // Auto-refresh to update countdown
+                if (timeRemaining > 0) {
+                    setTimeout(() => this.checkERPSession(), 30000); // Update every 30 seconds
+                }
             } else if (quickAccessCard) {
                 quickAccessCard.classList.add('hidden');
             }
@@ -330,11 +353,22 @@ export class DashboardController {
                     <div class="modal-body">
                         <p>Your ERP login was successful. Would you like to open the ERP portal in a new tab?</p>
                         <div class="erp-info">
-                            <strong>Portal:</strong> IIT Kharagpur ERP System<br>
-                            <strong>URL:</strong> https://erp.iitkgp.ac.in/IIT_ERP3/<br>
-                            <strong>Session Token:</strong> ${result.sessionToken ? result.sessionToken.substring(0, 20) + '...' : 'None'}<br>
-                            <strong>SSO Token:</strong> ${result.ssoToken || result.token || 'Not available (browser limitation)'}<br>
-                            <strong>Note:</strong> Browser sessions work differently than Python requests
+                            <div class="info-item">
+                                <span class="info-label">Portal:</span>
+                                <span class="info-value">IIT Kharagpur ERP System</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">URL:</span>
+                                <span class="info-value">https://erp.iitkgp.ac.in/IIT_ERP3/</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Session Token:</span>
+                                <span class="info-value">${result.sessionToken ? result.sessionToken.substring(0, 20) + '...' : 'None'}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">SSO Token:</span>
+                                <span class="info-value">${result.ssoToken || result.token || 'Not available'}</span>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -354,76 +388,132 @@ export class DashboardController {
                 left: 0;
                 width: 100%;
                 height: 100%;
-                background: rgba(0, 0, 0, 0.5);
+                background: rgba(0, 0, 0, 0.8);
+                backdrop-filter: blur(4px);
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 z-index: 1000;
+                padding: 20px;
             }
             .modal-dialog {
-                background: white;
-                border-radius: 8px;
-                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-                max-width: 400px;
-                width: 90%;
+                background: var(--bg-secondary, #1a1a1a);
+                border: 1px solid var(--border, rgba(255, 255, 255, 0.1));
+                border-radius: var(--radius-large, 16px);
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+                max-width: 480px;
+                width: 100%;
                 animation: modalSlideIn 0.3s ease-out;
+                overflow: hidden;
             }
             .modal-header {
-                padding: 20px 20px 10px;
-                border-bottom: 1px solid #eee;
+                padding: 24px 24px 16px;
+                border-bottom: 1px solid var(--border, rgba(255, 255, 255, 0.1));
+                background: linear-gradient(135deg, var(--bg-tertiary, #2a2a2a) 0%, var(--bg-secondary, #1a1a1a) 100%);
             }
             .modal-header h3 {
                 margin: 0;
-                color: #2c3e50;
+                color: var(--text-primary, #ffffff);
+                font-size: 18px;
+                font-weight: 600;
             }
             .modal-body {
-                padding: 20px;
-                color: #333;
+                padding: 24px;
+                color: var(--text-secondary, #e0e0e0);
             }
-            .erp-info {
-                background: #f8f9fa;
-                padding: 12px;
-                border-radius: 4px;
-                margin-top: 15px;
+            .modal-body p {
+                margin: 0 0 16px 0;
                 font-size: 14px;
                 line-height: 1.5;
             }
-            .modal-footer {
-                padding: 10px 20px 20px;
+            .erp-info {
+                background: var(--glass, rgba(255, 255, 255, 0.05));
+                border: 1px solid var(--border, rgba(255, 255, 255, 0.1));
+                border-radius: var(--radius, 8px);
+                padding: 16px;
+                margin-top: 16px;
+            }
+            .info-item {
                 display: flex;
-                gap: 10px;
+                justify-content: space-between;
+                align-items: flex-start;
+                margin-bottom: 12px;
+                gap: 16px;
+            }
+            .info-item:last-child {
+                margin-bottom: 0;
+            }
+            .info-label {
+                color: var(--text-muted, #a0a0a0);
+                font-size: 13px;
+                font-weight: 500;
+                min-width: 80px;
+                flex-shrink: 0;
+            }
+            .info-value {
+                color: var(--text-primary, #ffffff);
+                font-size: 13px;
+                word-break: break-all;
+                text-align: right;
+                font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            }
+            .modal-footer {
+                padding: 16px 24px 24px;
+                display: flex;
+                gap: 12px;
                 justify-content: flex-end;
+                background: var(--glass, rgba(255, 255, 255, 0.02));
             }
             .btn {
-                padding: 8px 16px;
+                padding: 10px 20px;
                 border: none;
-                border-radius: 4px;
+                border-radius: var(--radius, 8px);
                 cursor: pointer;
                 font-size: 14px;
-                transition: background-color 0.2s;
+                font-weight: 500;
+                transition: all var(--transition, 0.3s ease);
+                min-width: 80px;
             }
             .btn-secondary {
-                background: #6c757d;
-                color: white;
+                background: var(--bg-tertiary, #2a2a2a);
+                color: var(--text-secondary, #e0e0e0);
+                border: 1px solid var(--border, rgba(255, 255, 255, 0.1));
             }
             .btn-secondary:hover {
-                background: #5a6268;
+                background: var(--bg-primary, #0a0a0a);
+                transform: translateY(-1px);
             }
             .btn-primary {
-                background: #007bff;
-                color: white;
+                background: linear-gradient(135deg, var(--accent-primary, #00d4ff) 0%, var(--accent-secondary, #0099cc) 100%);
+                color: var(--bg-primary, #0a0a0a);
+                font-weight: 600;
             }
             .btn-primary:hover {
-                background: #0056b3;
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
             }
             @keyframes modalSlideIn {
                 from {
                     opacity: 0;
-                    transform: translateY(-50px);
+                    transform: translateY(-30px) scale(0.95);
                 }
                 to {
                     opacity: 1;
-                    transform: translateY(0);
+                    transform: translateY(0) scale(1);
+                }
+            }
+            @media (max-width: 480px) {
+                .modal-dialog {
+                    margin: 0;
+                    max-width: none;
+                    border-radius: var(--radius, 8px);
+                }
+                .info-item {
+                    flex-direction: column;
+                    gap: 4px;
+                }
+                .info-value {
+                    text-align: left;
                 }
             }
         `;
@@ -450,11 +540,31 @@ export class DashboardController {
                 document.head.removeChild(style);
             }
         });
+
+        // Close on escape key
+        const handleEscape = (e) => {
+            if (e.key === 'Escape') {
+                document.body.removeChild(dialog);
+                document.head.removeChild(style);
+                document.removeEventListener('keydown', handleEscape);
+            }
+        };
+        document.addEventListener('keydown', handleEscape);
+    }
+
+    async showERPCredentialsDialog() {
+        try {
+            const { ERPCredentialsDialog } = await import('../window/dialogs/ERPCredentialsDialog.js');
+            const dialog = new ERPCredentialsDialog(this.app);
+            await dialog.show();
+        } catch (error) {
+            console.error('Failed to show ERP credentials dialog:', error);
+            this.app.showError('Failed to load ERP credentials');
+        }
     }
 
     async openERPPortal(result) {
         try {
-            
             let url = 'https://erp.iitkgp.ac.in/IIT_ERP3/';
             
             // Use ssoToken if available
@@ -462,22 +572,25 @@ export class DashboardController {
                 url += `?ssoToken=${result.ssoToken}`;
             }
             
-            // Send message to background script to open new tab
+            // Try to send message to background script to open new tab
             try {
                 await chrome.runtime.sendMessage({
                     action: 'openTab',
                     url: url
                 });
                 this.app.showSuccess('ERP Portal opened in new tab');
+                return; // Exit successfully, don't execute fallbacks
             } catch (msgError) {
                 // Fallback if background script communication fails
                 window.open(url, '_blank');
                 this.app.showSuccess('ERP Portal opened in new tab');
+                return; // Exit after fallback, don't continue to catch block
             }
         } catch (error) {
             console.error('Failed to open ERP portal:', error);
-               // Fallback: try the direct homepage
+            // Final fallback: try the direct homepage
             window.open('https://erp.iitkgp.ac.in/IIT_ERP3/', '_blank');
+            this.app.showError('Opened ERP portal with basic URL due to error');
         }
     }
 }

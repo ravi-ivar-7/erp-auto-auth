@@ -90,7 +90,6 @@ export class ERPApiService {
             }
             
             const question = await response.text();
-            console.log('ERPApiService: Question trimmed:', question.trim());
             
             if (question.trim() === 'FALSE') {
                 throw new Error('Invalid Roll Number');
@@ -316,7 +315,6 @@ export class ERPApiService {
                 return { success: true, message: 'Login successful', welcomePage: true };
             }
             
-            console.log('ERPApiService: No success indicators found, login may have failed');
             throw new Error('Login failed - no success indicators found');
         } catch (error) {
             console.error('ERPApiService: Login submission failed:', error);
@@ -484,10 +482,8 @@ export class ERPApiService {
                     
                 } catch (error) {
                     attempts++;
-                    console.log(`ERPApiService: Login attempt ${attempts} failed:`, error.message);
                     
                     if (error.message === 'Invalid OTP' && attempts < maxAttempts) {
-                        console.log(`ERPApiService: Invalid OTP, waiting for new one (${attempts}/${maxAttempts})...`);
                         onProgress?.('otp', `Invalid OTP, waiting for new one (${attempts}/${maxAttempts})...`);
                         // Wait 5 seconds before trying to get next OTP
                         await new Promise(resolve => setTimeout(resolve, 5000));

@@ -34,6 +34,11 @@ export class NavController {
                     this.navigateToScreen(screen);
                 }
             }
+            
+            // Handle navbar title click to refresh extension
+            if (e.target.matches('.navbar-title') || e.target.closest('.navbar-title')) {
+                window.location.reload();
+            }
         });
     }
 

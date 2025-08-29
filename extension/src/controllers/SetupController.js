@@ -20,9 +20,26 @@ export class SetupController {
     }
 
     async onScreenLoad() {
+        // Check privacy policy first
+        await this.checkPrivacyPolicy();
+        
         this.setupEventListeners();
         await this.loadStoredSetupData();
         this.showStep(1);
+    }
+
+    async checkPrivacyPolicy() {
+        try {
+            const { PrivacyPolicyDialog } = await import('../window/dialogs/PrivacyPolicyDialog.js');
+            
+            const isRequired = await PrivacyPolicyDialog.isPrivacyPolicyRequired();
+            if (isRequired) {
+                const dialog = new PrivacyPolicyDialog(this.app);
+                await dialog.show();
+            }
+        } catch (error) {
+            console.error('Failed to check privacy policy:', error);
+        }
     }
 
     setupEventListeners() {
@@ -37,13 +54,13 @@ export class SetupController {
 
         credentialsForm?.addEventListener('submit', (e) => this.handleCredentialsSubmit(e));
         securityForm?.addEventListener('submit', (e) => this.handleSecuritySubmit(e));
-        document.getElementById('gmail-connect').addEventListener('click', () => this.handleGmailConnect());
-        document.getElementById('reload-extension').addEventListener('click', () => this.handleReloadExtension());
-        document.getElementById('add-security-question').addEventListener('click', () => this.addSecurityQuestion());
-        document.getElementById('password-toggle').addEventListener('click', () => this.togglePasswordVisibility());
-        document.getElementById('finish-setup').addEventListener('click', () => this.handleFinishSetup());
-        document.getElementById('back-btn').addEventListener('click', () => this.previousStep());
-        document.getElementById('next-btn').addEventListener('click', () => this.handleNextStep());
+        document.getElementById('gmail-connect')?.addEventListener('click', () => this.handleGmailConnect());
+        document.getElementById('reload-extension')?.addEventListener('click', () => this.handleReloadExtension());
+        document.getElementById('add-security-question')?.addEventListener('click', () => this.addSecurityQuestion());
+        document.getElementById('password-toggle')?.addEventListener('click', () => this.togglePasswordVisibility());
+        document.getElementById('finish-setup')?.addEventListener('click', () => this.handleFinishSetup());
+        document.getElementById('back-btn')?.addEventListener('click', () => this.previousStep());
+        document.getElementById('next-btn')?.addEventListener('click', () => this.handleNextStep());
         
         // Progress dot navigation
         document.querySelectorAll('.dot').forEach(dot => {
@@ -324,8 +341,7 @@ export class SetupController {
             await this.completeSetup();
             setTimeout(() => this.app.navigateToScreen('dashboard'), 1500);
         } catch (error) {
-            console.error('Gmail connection failed:', error);
-            window.erpApp.showError('Failed to connect Gmail');
+            window.erpApp.handleDetailedError(error);
             
             const button = document.getElementById('gmail-connect');
             const status = document.querySelector('.gmail-status');
@@ -402,7 +418,7 @@ export class SetupController {
         }
         
         if (nextBtn) {
-            if (step === 4) {
+            if (step === 3) {
                 nextBtn.textContent = 'Finish';
             } else {
                 nextBtn.textContent = 'Next';
@@ -436,6 +452,12 @@ export class SetupController {
     nextStep() {
         if (this.currentStep < 3) {
             this.showStep(this.currentStep + 1);
+        }
+    }
+    
+    navigateToStep(step) {
+        if (step >= 1 && step <= 3) {
+            this.showStep(step);
         }
     }
 

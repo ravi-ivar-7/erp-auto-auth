@@ -1,0 +1,212 @@
+.privacy-dialog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(8px);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.privacy-dialog-overlay.show {
+    opacity: 1;
+}
+
+.privacy-dialog {
+    background: var(--bg-primary, #1a1a1a);
+    border: 1px solid var(--border, rgba(255, 255, 255, 0.1));
+    border-radius: 16px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+}
+
+.privacy-dialog-overlay.show .privacy-dialog {
+    transform: scale(1);
+}
+
+.privacy-dialog-content {
+    padding: 32px;
+}
+
+.privacy-header {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.privacy-header h2 {
+    color: var(--text-primary, #ffffff);
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+}
+
+.privacy-subtitle {
+    color: var(--text-secondary, #e0e0e0);
+    font-size: 14px;
+    margin: 0;
+}
+
+.privacy-body {
+    margin-bottom: 32px;
+}
+
+.privacy-summary {
+    margin-bottom: 24px;
+}
+
+.privacy-summary h3 {
+    color: var(--text-primary, #ffffff);
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 12px 0;
+}
+
+.privacy-summary ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.privacy-summary li {
+    color: var(--text-secondary, #e0e0e0);
+    font-size: 14px;
+    margin-bottom: 8px;
+    padding-left: 16px;
+    position: relative;
+}
+
+.privacy-summary li::before {
+    content: "•";
+    color: var(--accent-primary, #00d4ff);
+    position: absolute;
+    left: 0;
+}
+
+.privacy-summary strong {
+    color: var(--text-primary, #ffffff);
+}
+
+.privacy-highlights {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.privacy-point {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    background: var(--glass, rgba(255, 255, 255, 0.05));
+    border: 1px solid var(--border, rgba(255, 255, 255, 0.1));
+    border-radius: 12px;
+}
+
+.privacy-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.privacy-point strong {
+    color: var(--text-primary, #ffffff);
+    font-size: 14px;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.privacy-point p {
+    color: var(--text-secondary, #e0e0e0);
+    font-size: 13px;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.privacy-footer-text {
+    text-align: center;
+}
+
+.privacy-footer-text p {
+    color: var(--text-secondary, #e0e0e0);
+    font-size: 13px;
+    margin: 0 0 8px 0;
+    line-height: 1.4;
+}
+
+.privacy-link {
+    color: var(--accent-primary, #00d4ff);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.privacy-link:hover {
+    text-decoration: underline;
+}
+
+.privacy-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.btn-privacy-decline,
+.btn-privacy-accept {
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    min-width: 120px;
+}
+
+.btn-privacy-decline {
+    background: var(--glass, rgba(255, 255, 255, 0.05));
+    border: 1px solid var(--border, rgba(255, 255, 255, 0.1));
+    color: var(--text-secondary, #e0e0e0);
+}
+
+.btn-privacy-decline:hover {
+    background: var(--bg-tertiary, #2a2a2a);
+    border-color: #ff4444;
+    color: #ff4444;
+}
+
+.btn-privacy-accept {
+    background: linear-gradient(135deg, var(--accent-primary, #00d4ff), #0084ff);
+    color: white;
+}
+
+.btn-privacy-accept:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 212, 255, 0.35);
+}
+
+@media (max-width: 480px) {
+    .privacy-dialog-content {
+        padding: 24px;
+    }
+    
+    .privacy-actions {
+        flex-direction: column;
+    }
+    
+    .btn-privacy-decline,
+    .btn-privacy-accept {
+        width: 100%;
+    }
+}
