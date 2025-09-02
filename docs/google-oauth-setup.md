@@ -1,6 +1,6 @@
 # Google OAuth2 Client ID Setup Guide
 
-This guide explains how to create and configure a Google OAuth2 client ID for the ERP Auto Auth (EAA) Chrome extension.
+This guide explains how to create and configure a Google OAuth2 client ID for the QuickERP Chrome extension.
 
 ## Prerequisites
 - Google account
@@ -29,7 +29,7 @@ This guide explains how to create and configure a Google OAuth2 client ID for th
 3. Click **"Create"**
 
 #### Fill Required Information:
-- **App name**: `ERP Auto Auth (EAA)`
+- **App name**: `QuickERP`
 - **User support email**: Your email address
 - **App logo**: (Optional) Upload extension icon
 - **App domain**: Leave blank for Chrome extensions
@@ -53,7 +53,7 @@ This guide explains how to create and configure a Google OAuth2 client ID for th
 1. Go to **"APIs & Services"** → **"Credentials"**
 2. Click **"Create Credentials"** → **"OAuth client ID"**
 3. Select **"Chrome extension"** as application type
-4. **Name**: `ERP Auto Auth Extension Client`
+4. **Name**: `QuickERP Extension Client`
 5. **Application ID**: Enter your Chrome extension ID
    - If you don't have it yet, use a placeholder like `abcdefghijklmnopqrstuvwxyzabcdef`
    - You can update this later after publishing/loading the extension

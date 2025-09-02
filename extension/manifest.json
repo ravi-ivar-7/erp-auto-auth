@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "ERP Auto Auth (EAA)",
+  "name": "QuickERP",
   "version": "1.0.0",
-  "description": "Automated login for IIT Kharagpur ERP with Gmail OTP integration",
+  "description": "Fast, secure login for IIT Kharagpur ERP with automated OTP retrieval",
   "icons": {
     "16": "src/assets/icons/icon-16.png",
     "32": "src/assets/icons/icon-32.png",
@@ -35,7 +35,7 @@
     "service_worker": "src/background.js"
   },
   "action": {
-    "default_title": "ERP Auto Auth (EAA)",
+    "default_title": "QuickERP",
     "default_icon": {
       "16": "src/assets/icons/icon-16.png",
       "32": "src/assets/icons/icon-32.png",

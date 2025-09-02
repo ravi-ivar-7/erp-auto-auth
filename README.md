@@ -1,6 +1,6 @@
-# ERP Auto Auth (EAA) Extension
+# QuickERP
 
-A production-ready Chrome extension for automated login to IIT Kharagpur ERP system with Gmail OTP integration.
+Fast, secure login for IIT Kharagpur ERP with automated OTP retrieval.
 
 ## 🚀 Features
 

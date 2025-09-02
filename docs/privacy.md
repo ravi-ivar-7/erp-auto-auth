@@ -1,11 +1,11 @@
-# Privacy Policy - ERP Auto Auth (EAA)
+# Privacy Policy - QuickERP
 
 **Last Updated**: August 29, 2025  
 **Version**: 1.0.0
 
 ## Overview
 
-ERP Auto Auth (EAA) is a Chrome extension designed to automate login to the IIT Kharagpur ERP system. This privacy policy explains how we handle your data with complete transparency and security.
+QuickERP is a Chrome extension designed to automate login to the IIT Kharagpur ERP system. This privacy policy explains how we handle your data with complete transparency and security.
 
 ## Data Collection
 
