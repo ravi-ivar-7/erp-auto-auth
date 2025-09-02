@@ -2,7 +2,6 @@ import { CredentialService } from '../services/CredentialService.js';
 import { GmailService } from '../services/GmailService.js';
 import { StorageService } from '../services/StorageService.js';
 import { ERPApiService } from '../services/ERPApiService.js';
-import { GMAIL_CONFIG } from '../config/constants.js';
 
 export class SetupController {
     constructor(app) {
@@ -21,7 +20,6 @@ export class SetupController {
     }
 
     async onScreenLoad() {
-        // Check privacy policy first
         await this.checkPrivacyPolicy();
         
         this.setupEventListeners();
@@ -57,6 +55,20 @@ export class SetupController {
         document.getElementById('back-btn')?.addEventListener('click', () => this.previousStep());
         document.getElementById('next-btn')?.addEventListener('click', () => this.handleNextStep());
         
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey && !e.altKey) {
+                const activeElement = document.activeElement;
+                // Only trigger if not in a textarea or if specifically in setup form inputs
+                if (activeElement && (activeElement.tagName !== 'TEXTAREA')) {
+                    const setupContainer = document.querySelector('.setup-container');
+                    if (setupContainer && setupContainer.contains(activeElement)) {
+                        e.preventDefault();
+                        this.handleNextStep();
+                    }
+                }
+            }
+        });
+        
         document.querySelectorAll('.dot').forEach(dot => {
             dot.addEventListener('click', (e) => {
                 const step = parseInt(e.target.dataset.step);
@@ -81,6 +93,14 @@ export class SetupController {
         this.userData.rollNumber = rollNumber;
         this.userData.password = password;
         
+        // Check if security questions already exist locally
+        if (this.userData.securityQuestions && this.userData.securityQuestions.length > 0) {
+            window.erpApp.showSuccess('Using existing security questions');
+            await this.saveSetupData();
+            this.nextStep();
+            return;
+        }
+        
         this.showSecurityQuestionsLoading();
         
         try {
@@ -91,9 +111,15 @@ export class SetupController {
                 question: question,
                 answer: '' 
             }));
-            
             await this.saveSetupData();
             this.nextStep();
+            
+            // Mark that these were just fetched so we show them in readonly format
+            setTimeout(() => {
+                if (document.querySelector('.step[data-step="2"].active')) {
+                    this.loadFetchedSecurityQuestions();
+                }
+            }, 100);
             
         } catch (error) {
             console.error('Failed to fetch security questions:', error);
@@ -102,8 +128,8 @@ export class SetupController {
             // Fall back to manual entry
             this.userData.securityQuestions = [];
             await this.saveSetupData();
-            this.nextStep();
             this.loadSecurityQuestions();
+            this.showStep(2);
         }
     }
     
@@ -286,6 +312,7 @@ export class SetupController {
         container.innerHTML = '';
         
         this.userData.securityQuestions.forEach((qa, index) => {
+            
             const questionDiv = document.createElement('div');
             questionDiv.className = 'security-question-card';
             questionDiv.innerHTML = `
@@ -295,13 +322,18 @@ export class SetupController {
                 </div>
                 <div class="question-field">
                     <label>Security Question</label>
-                    <input type="text" class="security-question" value="${qa.question || ''}" required>
+                    <input type="text" class="security-question" required>
                 </div>
                 <div class="answer-field">
                     <label>Answer</label>
-                    <input type="text" class="security-answer" value="${qa.answer || ''}" required>
+                    <input type="text" class="security-answer" required>
                 </div>
             `;
+             
+            const questionInput = questionDiv.querySelector('.security-question');
+            const answerInput = questionDiv.querySelector('.security-answer');
+            questionInput.value = qa.question || '';
+            answerInput.value = qa.answer || '';
             
             const removeBtn = questionDiv.querySelector('.remove-question');
             removeBtn.addEventListener('click', () => {
@@ -470,14 +502,10 @@ export class SetupController {
         }
 
         if (step === 2 && this.userData.securityQuestions) {
-            // Delay to ensure DOM is ready
             setTimeout(() => {
-                // Check if questions were fetched from API (have readonly format)
-                if (this.userData.securityQuestions.length > 0 && this.userData.securityQuestions[0].answer === '') {
-                    this.loadFetchedSecurityQuestions();
-                } else {
-                    this.prefillSecurityQuestions();
-                }
+                // Always use prefillSecurityQuestions for locally stored questions
+                // Only use loadFetchedSecurityQuestions when questions were just fetched in this session
+                this.prefillSecurityQuestions();
             }, 50);
         } else if (step === 3) {
             setTimeout(() => {
