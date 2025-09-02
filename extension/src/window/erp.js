@@ -150,6 +150,11 @@ class ERPApp {
                 details = 'Please reconnect Gmail in Settings. Make sure to grant all required permissions.';
                 isUserError = true;
             }
+            else if (errorMessage.includes('Gmail access is required')) {
+                userMessage = 'Gmail Permission Required';
+                details = errorMessage;
+                isUserError = true;
+            }
             else if (errorMessage.includes('security') || errorMessage.includes('question') || errorMessage.includes('answer') || errorMessage.includes('ANSWER_MISMATCH')) {
                 userMessage = 'Security Questions Issue';
                 details = 'Your security questions/answers may be incorrect. Please update them in Settings.';

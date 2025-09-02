@@ -11,6 +11,9 @@ export class GmailService {
                 throw new Error('Authentication failed');
             }
             
+            // Validate required permissions
+            await this.validateRequiredPermissions(token);
+            
             const userInfo = await this.getUserInfo(token);
              
             const gmailData = {
@@ -22,8 +25,33 @@ export class GmailService {
             
             return gmailData;
         } catch (error) {
-            console.error('Gmail authentication failed:', error);
+            if (error.message.includes('Gmail access is required')) {
+                throw error;
+            }
             throw new Error(ERROR_MESSAGES.GMAIL_AUTH_FAILED);
+        }
+    }
+
+    static async validateRequiredPermissions(token) {
+        const actualToken = typeof token === 'object' ? token.token : token;
+        
+        // Test Gmail API access
+        try {
+            const testResponse = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=1', {
+                headers: { 'Authorization': `Bearer ${actualToken}` }
+            });
+            
+            if (!testResponse.ok) {
+                if (testResponse.status === 403) {
+                    throw new Error('Gmail access is required for QuickERP to read OTP emails. Please grant email permissions and try again.');
+                }
+                throw new Error(`Gmail API access failed: ${testResponse.status}`);
+            }
+        } catch (error) {
+            if (error.message.includes('Gmail access is required')) {
+                throw error;
+            }
+            throw new Error('Gmail access is required for QuickERP to function. Please ensure you grant email permissions during authentication.');
         }
     }
 

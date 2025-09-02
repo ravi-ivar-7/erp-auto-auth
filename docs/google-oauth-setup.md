@@ -42,7 +42,9 @@ This guide explains how to create and configure a Google OAuth2 client ID for th
    - `https://www.googleapis.com/auth/userinfo.profile`
    - `https://www.googleapis.com/auth/gmail.readonly`
    - `openid`
-3. Click **"Update"**
+3. **Important**: In the scope justification field for `gmail.readonly`, add:
+   > "Required to automatically read OTP verification codes from ERP system emails. Without this permission, the extension cannot function."
+4. Click **"Update"**
 
 #### Test Users (for development):
 1. Click **"Add Users"**
