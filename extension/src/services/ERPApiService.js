@@ -102,19 +102,28 @@ export class ERPApiService {
         }
     }
 
-    static async getSecurityQuestions() {
+    static async getSecurityQuestions(rollNumber) {
         try {
-            const response = await fetch(ERP_CONFIG.SECURITY_URL, {
-                method: 'GET',
-                credentials: 'include'
-            });
+            const questions = new Set();
+            const maxAttempts = 10; // Prevent infinite loop
+            let attempts = 0;
             
-            if (!response.ok) {
-                throw new Error('Failed to get security questions');
+            while (questions.size < 3 && attempts < maxAttempts) {
+                try {
+                    const question = await this.getSecurityQuestion(rollNumber);
+                    questions.add(question);
+                    attempts++;
+                } catch (error) {
+                    // If we get an error (like invalid roll number), throw it immediately
+                    throw error;
+                }
             }
             
-            const html = await response.text();
-            return this.parseSecurityQuestions(html);
+            if (questions.size < 3) {
+                throw new Error(`Could only fetch ${questions.size} unique questions after ${maxAttempts} attempts`);
+            }
+            
+            return Array.from(questions);
         } catch (error) {
             console.error('Failed to get security questions:', error);
             throw error;

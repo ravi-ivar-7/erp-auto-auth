@@ -1,4 +1,49 @@
 /* Setup Screen Styles */
+
+/* Loading state for security questions */
+.loading-state {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-muted);
+}
+
+.loading-spinner {
+    font-size: 2rem;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Fetched security questions styles */
+.security-question-card.fetched {
+    border: 2px solid var(--accent-color);
+    background: rgba(var(--accent-rgb), 0.05);
+}
+
+.fetched-badge {
+    background: var(--accent-color);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.readonly-question {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 12px;
+    color: var(--text-primary);
+    font-weight: 500;
+    min-height: 20px;
+    display: flex;
+    align-items: center;
+}
 .setup-container {
     width: 100%;
     max-width: 460px;

@@ -1,6 +1,7 @@
 import { CredentialService } from '../services/CredentialService.js';
 import { GmailService } from '../services/GmailService.js';
 import { StorageService } from '../services/StorageService.js';
+import { ERPApiService } from '../services/ERPApiService.js';
 import { GMAIL_CONFIG } from '../config/constants.js';
 
 export class SetupController {
@@ -87,9 +88,33 @@ export class SetupController {
         this.userData.rollNumber = rollNumber;
         this.userData.password = password;
         
-        await this.saveSetupData();
-        this.nextStep();
-        this.loadSecurityQuestions();
+        // Show loading state
+        this.showSecurityQuestionsLoading();
+        
+        try {
+            // Fetch security questions from ERP API
+            window.erpApp.showSuccess('Fetching your security questions...');
+            const questions = await ERPApiService.getSecurityQuestions(rollNumber);
+            
+            // Convert questions to the format expected by the UI
+            this.userData.securityQuestions = questions.map(question => ({
+                question: question,
+                answer: '' // User will fill this
+            }));
+            
+            await this.saveSetupData();
+            this.nextStep();
+            
+        } catch (error) {
+            console.error('Failed to fetch security questions:', error);
+            window.erpApp.showError(`Failed to fetch security questions: ${error.message}`);
+            
+            // Fall back to manual entry
+            this.userData.securityQuestions = [];
+            await this.saveSetupData();
+            this.nextStep();
+            this.loadSecurityQuestions();
+        }
     }
     
     handleNextClick() {
@@ -111,6 +136,47 @@ export class SetupController {
         if (this.currentStep > 1) {
             this.currentStep--;
             this.showStep(this.currentStep);
+        }
+    }
+
+    showSecurityQuestionsLoading() {
+        const container = document.querySelector('.security-questions');
+        if (!container) return;
+        
+        container.innerHTML = `
+            <div class="loading-state">
+                <div class="loading-spinner">🔄</div>
+                <p>Fetching your security questions from ERP...</p>
+            </div>
+        `;
+    }
+
+    loadFetchedSecurityQuestions() {
+        const container = document.querySelector('.security-questions');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        
+        if (this.userData.securityQuestions && this.userData.securityQuestions.length > 0) {
+            this.userData.securityQuestions.forEach((qa, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'security-question-card fetched';
+                questionDiv.innerHTML = `
+                    <div class="card-header">
+                        <span class="question-number">Q${index + 1}</span>
+                        <span class="fetched-badge">📥 Auto-fetched</span>
+                    </div>
+                    <div class="question-field">
+                        <label>Security Question</label>
+                        <div class="readonly-question">${qa.question}</div>
+                    </div>
+                    <div class="answer-field">
+                        <label>Your Answer</label>
+                        <input type="text" class="security-answer" placeholder="Enter your answer" required>
+                    </div>
+                `;
+                container.appendChild(questionDiv);
+            });
         }
     }
 
@@ -296,8 +362,19 @@ export class SetupController {
         const cards = document.querySelectorAll('.security-question-card');
         
         cards.forEach((card, index) => {
-            const question = card.querySelector('.security-question').value.trim();
-            const answer = card.querySelector('.security-answer').value.trim();
+            let question, answer;
+            
+            // Check if this is a fetched question (readonly) or manual entry
+            const readonlyQuestion = card.querySelector('.readonly-question');
+            if (readonlyQuestion) {
+                // Fetched question - get question from readonly div and answer from input
+                question = readonlyQuestion.textContent.trim();
+                answer = card.querySelector('.security-answer').value.trim();
+            } else {
+                // Manual entry - get both from inputs
+                question = card.querySelector('.security-question').value.trim();
+                answer = card.querySelector('.security-answer').value.trim();
+            }
             
             if (question && answer) {
                 securityQuestions.push({ question, answer });
@@ -424,7 +501,12 @@ export class SetupController {
         if (step === 2 && this.userData.securityQuestions) {
             // Delay to ensure DOM is ready
             setTimeout(() => {
-                this.prefillSecurityQuestions();
+                // Check if questions were fetched from API (have readonly format)
+                if (this.userData.securityQuestions.length > 0 && this.userData.securityQuestions[0].answer === '') {
+                    this.loadFetchedSecurityQuestions();
+                } else {
+                    this.prefillSecurityQuestions();
+                }
             }, 50);
         } else if (step === 3) {
             setTimeout(() => {
