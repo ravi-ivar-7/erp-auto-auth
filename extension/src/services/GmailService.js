@@ -2,7 +2,7 @@ import { GMAIL_CONFIG, ERROR_MESSAGES } from '../config/constants.js';
 import { CredentialService } from './CredentialService.js'; 
 
 export class GmailService {
-    static async authenticate(customClientId = null) {
+    static async authenticate() {
         try {
             await chrome.identity.clearAllCachedAuthTokens();
             
@@ -12,8 +12,7 @@ export class GmailService {
             }
             
             const userInfo = await this.getUserInfo(token);
-            
-            // Store in format matching existing data
+             
             const gmailData = {
                 grantedScopes: token.grantedScopes || [],
                 token: typeof token === 'object' ? token.token : token,

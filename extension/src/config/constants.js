@@ -16,7 +16,6 @@ export const GMAIL_CONFIG = {
         'openid'
     ],
     DISCOVERY_DOC: 'https://www.googleapis.com/discovery/v1/apis/gmail/v1/rest',
-    DEFAULT_CLIENT_ID: '87033747871-houf0a0g47ei5e4l7s0v4ssu5lt5c6qv.apps.googleusercontent.com',
     OTP_SEARCH_QUERY: 'from:erpkgp@adm.iitkgp.ac.in'
 };
 
