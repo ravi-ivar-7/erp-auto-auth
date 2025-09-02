@@ -46,12 +46,6 @@ export class SetupController {
     setupEventListeners() {
         const credentialsForm = document.getElementById('credentials-form');
         const securityForm = document.getElementById('security-form');
-        const gmailConnect = document.getElementById('gmail-connect');
-        const finishSetup = document.getElementById('finish-setup');
-        const backBtn = document.getElementById('back-btn');
-        const nextBtn = document.getElementById('next-btn');
-        const addQuestionBtn = document.getElementById('add-security-question');
-        const passwordToggle = document.getElementById('password-toggle');
 
         credentialsForm?.addEventListener('submit', (e) => this.handleCredentialsSubmit(e));
         securityForm?.addEventListener('submit', (e) => this.handleSecuritySubmit(e));
@@ -63,7 +57,6 @@ export class SetupController {
         document.getElementById('back-btn')?.addEventListener('click', () => this.previousStep());
         document.getElementById('next-btn')?.addEventListener('click', () => this.handleNextStep());
         
-        // Progress dot navigation
         document.querySelectorAll('.dot').forEach(dot => {
             dot.addEventListener('click', (e) => {
                 const step = parseInt(e.target.dataset.step);
@@ -88,18 +81,15 @@ export class SetupController {
         this.userData.rollNumber = rollNumber;
         this.userData.password = password;
         
-        // Show loading state
         this.showSecurityQuestionsLoading();
         
         try {
-            // Fetch security questions from ERP API
             window.erpApp.showSuccess('Fetching your security questions...');
             const questions = await ERPApiService.getSecurityQuestions(rollNumber);
             
-            // Convert questions to the format expected by the UI
             this.userData.securityQuestions = questions.map(question => ({
                 question: question,
-                answer: '' // User will fill this
+                answer: '' 
             }));
             
             await this.saveSetupData();
@@ -184,18 +174,15 @@ export class SetupController {
         const container = document.querySelector('.security-questions');
         if (!container) return;
         
-        // Don't clear if already has prefilled content
         if (container.children.length > 0 && this.userData.securityQuestions) {
             return;
         }
         
         container.innerHTML = '';
         
-        // Check if we have stored security questions
         if (this.userData.securityQuestions && this.userData.securityQuestions.length > 0) {
             this.prefillSecurityQuestions();
         } else {
-            // Add default number of security questions
             for (let i = 0; i < this.SECURITY_QUESTIONS_COUNT; i++) {
                 this.addSecurityQuestion();
             }
@@ -269,7 +256,6 @@ export class SetupController {
     }
 
     prefillForms() {
-        // Prefill credentials immediately
         if (this.userData.rollNumber) {
             const rollNumberInput = document.getElementById('roll-number');
             if (rollNumberInput) {
@@ -284,15 +270,10 @@ export class SetupController {
             }
         }
 
-        // Prefill security questions - trigger immediately and on step navigation
         if (this.userData.securityQuestions) {
             this.prefillSecurityQuestions();
         }
-        // Prefill Gmail status and custom client ID
-        // Check Gmail data from CredentialService
         this.checkAndPrefillGmailStatus();
-        
-        // Custom client ID support removed - using default OAuth client only
     }
 
     prefillSecurityQuestions() {
@@ -399,17 +380,14 @@ export class SetupController {
             button.disabled = true;
             button.innerHTML = '<span>🔄 Connecting...</span>';
             
-            // Use default OAuth client (no custom client ID support)
             const tokenData = await GmailService.authenticate();
             
-            // Save Gmail data using CredentialService
             await CredentialService.saveGmailData(tokenData);
             
             status.className = 'gmail-status connected';
             status.textContent = `✓ Connected: ${tokenData.email}`;
             button.innerHTML = '<span>✅ Connected</span>';
             
-            // Complete setup and go to main page
             await this.completeSetup();
             setTimeout(() => this.app.navigateToScreen('dashboard'), 1500);
         } catch (error) {
@@ -450,10 +428,8 @@ export class SetupController {
     }
 
     showStep(step) {
-        // Update current step
         this.currentStep = step;
         
-        // Update step visibility
         document.querySelectorAll('.step').forEach(stepEl => {
             stepEl.classList.remove('active');
         });
@@ -462,8 +438,6 @@ export class SetupController {
         if (targetStep) {
             targetStep.classList.add('active');
         }
-        
-        // Update progress dots
         document.querySelectorAll('.dot').forEach((dot, index) => {
             dot.classList.remove('active', 'completed');
             const dotStep = index + 1;
@@ -475,13 +449,11 @@ export class SetupController {
             }
         });
         
-        // Update step counter
         const stepCounter = document.getElementById('current-step');
         if (stepCounter) {
             stepCounter.textContent = step;
         }
         
-        // Update navigation buttons
         const backBtn = document.getElementById('back-btn');
         const nextBtn = document.getElementById('next-btn');
         
@@ -497,7 +469,6 @@ export class SetupController {
             }
         }
 
-        // Trigger prefill for current step
         if (step === 2 && this.userData.securityQuestions) {
             // Delay to ensure DOM is ready
             setTimeout(() => {

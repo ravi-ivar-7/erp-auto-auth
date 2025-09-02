@@ -17,7 +17,6 @@ export class SettingsController {
     }
 
     async onScreenLoad() {
-        // Reset edit mode and listeners when screen loads
         this.editMode = {
             roll: false,
             password: false,
@@ -37,7 +36,6 @@ export class SettingsController {
             document.getElementById('settings-roll').textContent = userData?.rollNumber || 'Not set';
             document.getElementById('settings-password').textContent = '••••••••';
             
-            // Update Gmail UI based on connection status
             await this.loadGmailInfo();
             
             this.loadSecurityQuestions(userData?.securityQuestions || []);
@@ -58,14 +56,12 @@ export class SettingsController {
             const setupBtn = document.getElementById('setup-gmail');
             
             if (gmailData && gmailData.token) {
-                // Gmail is connected - show disconnect button only
                 gmailEmail.textContent = gmailData.email || 'Connected';
                 gmailStatus.textContent = 'Connected';
                 disconnectBtn.style.display = 'inline-block';
                 reconnectBtn.style.display = 'none';
                 setupBtn.style.display = 'none';
             } else {
-                // Gmail is not connected - show setup button
                 gmailEmail.textContent = 'Not connected';
                 gmailStatus.textContent = 'Disconnected';
                 disconnectBtn.style.display = 'none';
@@ -97,7 +93,6 @@ export class SettingsController {
             `;
             container.appendChild(questionDiv);
             
-            // Add event listener after creating the element
             const button = document.getElementById(`show-answer-${index}`);
             if (button) {
                 button.addEventListener('click', () => this.toggleShowAnswer(index));
@@ -106,12 +101,9 @@ export class SettingsController {
     }
 
     setupEventListeners() {
-        // Prevent duplicate event listeners
         if (this.listenersAttached) return;
         this.listenersAttached = true;
         
-        
-        // Password toggle
         const passwordBtn = document.getElementById('show-password');
         if (passwordBtn) {
             passwordBtn.addEventListener('click', () => {
@@ -119,7 +111,6 @@ export class SettingsController {
             });
         }
         
-        // Edit buttons
         const editRollBtn = document.getElementById('edit-roll-btn');
         const editPasswordBtn = document.getElementById('edit-password-btn');
         const editQuestionsBtn = document.getElementById('edit-questions-btn');
@@ -150,7 +141,6 @@ export class SettingsController {
         document.getElementById('next-btn')?.addEventListener('click', () => this.handleNextStep());
         document.getElementById('reset-data')?.addEventListener('click', () => this.resetData());
         
-        // Make controller globally accessible for answer buttons
         window.settingsController = this;
     }
 
@@ -191,7 +181,7 @@ export class SettingsController {
             element.textContent = question.answer;
             button.textContent = '🙈';
             
-            // Auto-hide after 3 seconds
+            // Auto-hide
             setTimeout(() => {
                 if (!element.textContent.includes('•')) {
                     element.textContent = '•'.repeat(Math.min(question.answer.length, 20));
@@ -253,7 +243,6 @@ export class SettingsController {
         }
         
         if (!this.editMode.roll) {
-            // Enter edit mode
             input.value = this.userData?.rollNumber || '';
             valueSpan.style.display = 'none';
             input.style.display = 'inline-block';
@@ -261,12 +250,10 @@ export class SettingsController {
             button.textContent = '💾';
             this.editMode.roll = true;
             
-            // Handle Enter key
             input.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') this.saveRollEdit();
             });
         } else {
-            // Save changes
             this.saveRollEdit();
         }
     }
@@ -285,11 +272,9 @@ export class SettingsController {
                 return;
             }
             
-            // Update in storage
             await CredentialService.updateUserData({ rollNumber: newRoll });
             this.userData.rollNumber = newRoll;
             
-            // Update UI
             valueSpan.textContent = newRoll;
             valueSpan.style.display = 'inline-block';
             input.style.display = 'none';
@@ -309,21 +294,18 @@ export class SettingsController {
         const button = document.getElementById('edit-password-btn');
         
         if (!this.editMode.password) {
-            // Enter edit mode
             input.value = this.userData?.password || '';
-            input.type = 'text'; // Make password visible during editing
+            input.type = 'text';
             valueSpan.style.display = 'none';
             input.style.display = 'inline-block';
             input.focus();
             button.textContent = '💾';
             this.editMode.password = true;
             
-            // Handle Enter key
             input.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') this.savePasswordEdit();
             });
         } else {
-            // Save changes
             this.savePasswordEdit();
         }
     }
@@ -345,15 +327,13 @@ export class SettingsController {
                 return;
             }
             
-            // Update in storage
             await CredentialService.updateUserData({ password: newPassword });
             this.userData.password = newPassword;
             
-            // Update UI
             valueSpan.textContent = '••••••••';
             valueSpan.style.display = 'inline-block';
             input.style.display = 'none';
-            input.type = 'password'; // Hide password again after editing
+            input.type = 'password'; 
             button.textContent = '✏️';
             this.editMode.password = false;
             
@@ -369,12 +349,10 @@ export class SettingsController {
         const container = document.getElementById('security-questions-list');
         
         if (!this.editMode.questions) {
-            // Enter edit mode
             this.renderEditableQuestions();
             button.textContent = '💾 Save';
             this.editMode.questions = true;
         } else {
-            // Save changes
             this.saveQuestionsEdit();
         }
     }
@@ -401,14 +379,12 @@ export class SettingsController {
             `;
             container.appendChild(questionDiv);
             
-            // Add event listener for delete button
             const deleteBtn = questionDiv.querySelector('.delete-question');
             deleteBtn.addEventListener('click', () => {
                 questionDiv.remove();
             });
         });
         
-        // Add button to add new question
         const addButton = document.createElement('button');
         addButton.className = 'btn-mini add-question-btn';
         addButton.id = 'add-question-btn';
@@ -435,14 +411,12 @@ export class SettingsController {
                 <button class="btn-mini btn-danger delete-question">🗑️</button>
             </div>
         `;
-        
-        // Add event listener for delete button
+
         const deleteBtn = questionDiv.querySelector('.delete-question');
         deleteBtn.addEventListener('click', () => {
             questionDiv.remove();
         });
         
-        // Insert before the add button using specific ID
         const addButton = document.getElementById('add-question-btn');
         if (addButton && addButton.parentNode === container) {
             container.insertBefore(questionDiv, addButton);
@@ -478,11 +452,9 @@ export class SettingsController {
                 return;
             }
             
-            // Update in storage
             await CredentialService.updateUserData({ securityQuestions: newQuestions });
             this.userData.securityQuestions = newQuestions;
             
-            // Update UI
             this.loadSecurityQuestions(newQuestions);
             button.textContent = '✏️ Edit';
             this.editMode.questions = false;
@@ -516,7 +488,6 @@ export class SettingsController {
 
     
     async handleGmailDisconnect() {
-        // Show confirmation dialog
         const confirmed = confirm(
             'Are you sure you want to disconnect Gmail?\n\n' +
             'This will:\n' +
@@ -531,17 +502,14 @@ export class SettingsController {
         }
         
         try {
-            // Clear Gmail data from Chrome storage
             await StorageService.remove('gmail_data');
             
-            // Clear Chrome identity tokens
             try {
                 await chrome.identity.clearAllCachedAuthTokens();
             } catch (error) {
                 console.warn('Failed to clear cached tokens:', error);
             }
             
-            // Update UI
             await this.loadGmailInfo();
             this.app.showSuccess('Gmail disconnected successfully');
         } catch (error) {
@@ -557,10 +525,8 @@ export class SettingsController {
             const { GmailService } = await import('../services/GmailService.js');
             const tokenData = await GmailService.authenticate();
             
-            // Save Gmail data
             await CredentialService.saveGmailData(tokenData);
             
-            // Update UI
             await this.loadGmailInfo();
             this.showFeedback('✓ Gmail connected');
         } catch (error) {
@@ -570,14 +536,13 @@ export class SettingsController {
     }
     
     async handleGmailSetup() {
-        // Navigate to setup screen and jump to Gmail step
         this.app.navigateToScreen('setup');
         
         // Wait for setup screen to load, then navigate to Gmail step
         setTimeout(() => {
             const setupController = this.app.getController('setup');
             if (setupController && setupController.navigateToStep) {
-                setupController.navigateToStep(3); // Gmail is step 3
+                setupController.navigateToStep(3); 
             }
         }, 100);
     }

@@ -1,5 +1,5 @@
 import { ERPApiService } from '../services/ERPApiService.js';
-import { StorageService } from '../services/StorageService.js';
+import { ERP_CONFIG } from '../config/constants.js';
 
 export class DashboardController {
     constructor(app) {
@@ -11,7 +11,6 @@ export class DashboardController {
     }
 
     async onScreenLoad() {
-        // Check privacy policy first
         await this.checkPrivacyPolicy();
         
         await this.loadDashboardData();
@@ -106,7 +105,6 @@ export class DashboardController {
             
             this.app.showSuccess('Starting ERP login...');
             
-            // Show login card and progress
             const loginCard = document.getElementById('login-card');
             const loginProgress = document.querySelector('.login-progress');
             
@@ -117,7 +115,6 @@ export class DashboardController {
                 loginProgress.classList.remove('hidden');
             }
             
-            // Show cancel button
             const loginActions = document.querySelector('.login-actions');
             if (loginActions) {
                 loginActions.classList.remove('hidden');
@@ -131,9 +128,7 @@ export class DashboardController {
                 }
             });
             
-            // Login successful - save session and show dialog
             if (result && result.success) {
-                // Save ERP session tokens instead of storing in memory
                 const { CredentialService } = await import('../services/CredentialService.js');
                 await CredentialService.saveERPSession({
                     sessionToken: result.sessionToken,
@@ -143,10 +138,8 @@ export class DashboardController {
                 
                 this.updateDashboardProgress('completed', 'Login completed successfully');
                 
-                // Update last login timestamp
                 await this.app.getController('app').updateLastLogin();
                 
-                // Hide login progress and cancel button
                 this.hideLoginProgress();
                 
                 // Refresh Quick Access card to show new session
@@ -187,7 +180,6 @@ export class DashboardController {
                     sessionTime.textContent = `Session from: ${sessionDate.toLocaleString()}`;
                     quickAccessCard.classList.remove('hidden');
                     
-                    // Update login button for relogin
                     if (loginCardTitle) {
                         loginCardTitle.textContent = 'ERP Login (Relogin)';
                     }
@@ -205,7 +197,6 @@ export class DashboardController {
                         quickAccessCard.classList.add('hidden');
                     }
                     
-                    // Reset login button for new login
                     if (loginCardTitle) {
                         loginCardTitle.textContent = 'ERP Login';
                     }
@@ -219,7 +210,6 @@ export class DashboardController {
             } else if (quickAccessCard) {
                 quickAccessCard.classList.add('hidden');
                 
-                // Reset login button for new login
                 if (loginCardTitle) {
                     loginCardTitle.textContent = 'ERP Login';
                 }
@@ -295,30 +285,23 @@ export class DashboardController {
         
         if (!pollingStatus) return;
         
-        // Show polling status section
         pollingStatus.classList.remove('hidden');
         
-        // Update message
         if (pollingMessage) {
             pollingMessage.textContent = data.message || 'Polling for OTP...';
         }
         
-        // Update timer
         if (pollingTimer) {
-            // Ensure proper timer format
             let timerText = data.timer || '0:00';
             if (timerText === '0:0') {
                 timerText = '0:00';
             }
             pollingTimer.textContent = timerText;
         }
-        
-        // Update attempts
         if (pollingAttempts) {
             pollingAttempts.textContent = `Attempt ${data.attempt || 1}/${data.maxAttempts || 10}`;
         }
         
-        // Handle error state
         if (data.status === 'error' && pollingError) {
             pollingError.textContent = data.error || 'An error occurred';
             pollingError.classList.remove('hidden');
@@ -326,7 +309,6 @@ export class DashboardController {
             pollingError.classList.add('hidden');
         }
         
-        // Update polling icon based on status
         const pollingIcon = document.querySelector('.polling-icon');
         if (pollingIcon) {
             switch (data.status) {
@@ -361,7 +343,6 @@ export class DashboardController {
         const progressSteps = document.querySelectorAll('.progress-step');
         const progressFill = document.querySelector('.progress-fill');
         
-        // Update step indicators
         progressSteps.forEach((stepEl, index) => {
             const stepName = stepEl.dataset.step;
             stepEl.classList.remove('active', 'completed');
@@ -373,7 +354,6 @@ export class DashboardController {
                     stepEl.classList.add('active');
                 }
             } else {
-                // Mark previous steps as completed
                 const stepOrder = ['init', 'credentials', 'security', 'otp', 'login', 'completed'];
                 const currentIndex = stepOrder.indexOf(step);
                 const stepIndex = stepOrder.indexOf(stepName);
@@ -384,7 +364,6 @@ export class DashboardController {
             }
         });
         
-        // Update progress bar
         if (progressFill) {
             const stepOrder = ['init', 'credentials', 'security', 'otp', 'login', 'completed'];
             const currentIndex = stepOrder.indexOf(step);
@@ -436,9 +415,8 @@ export class DashboardController {
 
     async openERPPortal(result) {
         try {
-            let url = 'https://erp.iitkgp.ac.in/IIT_ERP3/';
+            let url = ERP_CONFIG.HOMEPAGE_URL;
             
-            // Use ssoToken if available
             if (result?.ssoToken) {
                 url += `?ssoToken=${result.ssoToken}`;
             }
@@ -450,17 +428,17 @@ export class DashboardController {
                     url: url
                 });
                 this.app.showSuccess('ERP Portal opened in new tab');
-                return; // Exit successfully, don't execute fallbacks
+                return;
             } catch (msgError) {
                 // Fallback if background script communication fails
                 window.open(url, '_blank');
                 this.app.showSuccess('ERP Portal opened in new tab');
-                return; // Exit after fallback, don't continue to catch block
+                return; 
             }
         } catch (error) {
-            console.error('Failed to open ERP portal:', error);
+            console.warn('Failed to open ERP portal:', error);
             // Final fallback: try the direct homepage
-            window.open('https://erp.iitkgp.ac.in/IIT_ERP3/', '_blank');
+            window.open(ERP_CONFIG.HOMEPAGE_URL, '_blank');
             this.app.showError('Opened ERP portal with basic URL due to error');
         }
     }

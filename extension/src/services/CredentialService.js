@@ -77,7 +77,7 @@ export class CredentialService {
         if (!session) return false;
         
         try {
-            // Use stored ssoToken to validate session like Python version
+            // Use stored ssoToken to validate session 
             const validateUrl = `https://erp.iitkgp.ac.in/IIT_ERP3/welcome.jsp?ssoToken=${session.ssoToken}`;
             
             const response = await fetch(validateUrl, {
@@ -87,7 +87,7 @@ export class CredentialService {
                 }
             });
             
-            // Check content length like Python version
+            // Check content length 
             const contentLength = response.headers.get('Content-Length');
             return contentLength === '1034';
         } catch (error) {

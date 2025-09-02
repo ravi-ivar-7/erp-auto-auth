@@ -776,11 +776,11 @@
 .link-title {
     font-weight: 600;
     color: var(--text-primary);
-    font-size: 11px;
+    font-size: 14px;
     line-height: 1.2;
 }
 
-.link-description {
+.link-desc {
     color: var(--text-secondary);
     font-size: 10px;
     opacity: 0.8;

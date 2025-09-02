@@ -246,13 +246,14 @@ body {
     transition: var(--transition);
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 12px;
 }
 
 .toast-close {
     background: none;
     border: none;
-    color: var(--text-secondary);
+    color: #ff4444;
     font-size: 18px;
     font-weight: bold;
     cursor: pointer;
@@ -265,11 +266,12 @@ body {
     border-radius: 50%;
     transition: var(--transition);
     flex-shrink: 0;
+    margin-left: auto;
 }
 
 .toast-close:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: var(--text-primary);
+    background: rgba(255, 68, 68, 0.2);
+    color: #ff6666;
 }
 
 .toast.show {

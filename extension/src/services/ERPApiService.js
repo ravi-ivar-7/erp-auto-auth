@@ -112,7 +112,7 @@ export class ERPApiService {
                     questions.add(question);
                     attempts++;
                 } catch (error) {
-                    // If we get an error (like invalid roll number), throw it immediately
+                    // If we get an error (like invalid roll number)
                     throw error;
                 }
             }
@@ -288,8 +288,6 @@ export class ERPApiService {
                 }
             }
             
-            // Python code: ssoToken = re.search(r'\?ssoToken=(.+)$', r.history[1].headers['Location']).group(1)
-            // Check final URL for ssoToken (after redirects)
             if (response.url && response.url.includes('ssoToken=')) {
                 const ssoTokenMatch = response.url.match(/ssoToken=([^&]+)/);
                 if (ssoTokenMatch) {
@@ -297,7 +295,6 @@ export class ERPApiService {
                 }
             }
             
-            // Check for specific error messages from Python erp_responses.py
             if (text.includes('ERROR:Email OTP mismatch')) {
                 throw new Error('Invalid OTP');
             }
@@ -310,14 +307,9 @@ export class ERPApiService {
                 throw new Error('Invalid security question answer');
             }
             
-            // Python expects redirects with ssoToken, but our browser doesn't redirect
-            // The "Welcome to ERP" page means login worked but no ssoToken redirect happened
-            // This is a fundamental difference between Python requests and browser fetch
             if (text.includes('Welcome to ERP') || text.includes('welcome.jsp') || text.includes('home.jsp') || 
                 text.includes('dashboard') || text.includes('Welcome') || text.includes('success')) {
                 
-                // Since we can't get ssoToken from redirect, we need to extract it differently
-                // or accept that browser-based login works differently than Python
                 return { success: true, message: 'Login successful', welcomePage: true };
             }
             
@@ -392,11 +384,9 @@ export class ERPApiService {
             }
             
             
-            // Check if we have an answer for this exact question
             let securityAnswer = securityQuestionsMap[securityQuestion];
             
             if (!securityAnswer) {
-                // Try fuzzy matching with multiple strategies
                 
                 const normalizeText = (text) => text.toLowerCase().replace(/[^a-z0-9]/g, '');
                 const apiQuestionNorm = normalizeText(securityQuestion);
@@ -427,30 +417,6 @@ export class ERPApiService {
                     }
                 }
                 
-                // Strategy 4: Common question variations
-                if (!securityAnswer) {
-                    const questionVariations = {
-                        'color': ['colour', 'favorite color', 'favourite color', 'fav color'],
-                        'colour': ['color', 'favorite colour', 'favourite colour', 'fav colour'],
-                        'game': ['favorite game', 'favourite game', 'fav game'],
-                        'pet': ['first pet', 'pet name', 'favorite pet'],
-                        'mother': ['mothers maiden name', 'mother maiden name', 'mom maiden'],
-                        'father': ['fathers middle name', 'father middle name', 'dad middle']
-                    };
-                    
-                    for (const [key, variations] of Object.entries(questionVariations)) {
-                        if (apiQuestionNorm.includes(key)) {
-                            for (const storedQuestion in securityQuestionsMap) {
-                                const storedNorm = normalizeText(storedQuestion);
-                                if (variations.some(variant => storedNorm.includes(normalizeText(variant)))) {
-                                    securityAnswer = securityQuestionsMap[storedQuestion];
-                                    break;
-                                }
-                            }
-                            if (securityAnswer) break;
-                        }
-                    }
-                }
             }
             
             if (!securityAnswer) {
@@ -458,21 +424,17 @@ export class ERPApiService {
             }
             
             
-            
-            // First request OTP, then wait for it 
             onProgress?.('otp', 'Requesting OTP');
             await this.requestOTP(credentials, sessionToken, securityAnswer);
             
             onProgress?.('otp', 'Retrieving OTP from Gmail');
             
-            // Keep trying until we get a valid OTP or timeout
             let loginResult;
             let attempts = 0;
             const maxAttempts = 10;
             
             while (attempts < maxAttempts) {
                 try {
-                    // Wait for OTP to arrive
                     const otp = await GmailService.getLatestOTP(10, 5000, (step, data) => {
                         if (step === 'polling') {
                             onProgress?.('polling', data);
@@ -493,7 +455,6 @@ export class ERPApiService {
                     
                     if (error.message === 'Invalid OTP' && attempts < maxAttempts) {
                         onProgress?.('otp', `Invalid OTP, waiting for new one (${attempts}/${maxAttempts})...`);
-                        // Wait 5 seconds before trying to get next OTP
                         await new Promise(resolve => setTimeout(resolve, 5000));
                     } else {
                         // Either not an OTP error, or we've exhausted attempts
@@ -506,7 +467,6 @@ export class ERPApiService {
                 throw new Error(`Login failed after ${maxAttempts} OTP attempts`);
             }
              
-            // Add sessionToken to result for portal access
             return { ...loginResult, sessionToken };
         } catch (error) {
             console.error('ERPApiService: Full login failed with error:', error);

@@ -11,30 +11,23 @@ class PrivacyPolicyDialog {
         }
 
         try {
-            // Create overlay
             this.overlay = document.createElement('div');
             this.overlay.className = 'privacy-dialog-overlay';
             
-            // Create dialog container
             this.dialog = document.createElement('div');
             this.dialog.className = 'privacy-dialog';
             
-            // Load dialog content
             const response = await fetch(chrome.runtime.getURL('src/window/dialogs/privacy-policy.html'));
             const html = await response.text();
             this.dialog.innerHTML = html;
             
-            // Append to body
             this.overlay.appendChild(this.dialog);
             document.body.appendChild(this.overlay);
             
-            // Setup event listeners
             this.setupEventListeners();
             
-            // Disable body scroll
             document.body.style.overflow = 'hidden';
             
-            // Show with animation
             requestAnimationFrame(() => {
                 this.overlay.classList.add('show');
             });
@@ -46,22 +39,18 @@ class PrivacyPolicyDialog {
     }
 
     setupEventListeners() {
-        // Accept button
         const acceptBtn = this.dialog.querySelector('#privacy-accept-btn');
         acceptBtn?.addEventListener('click', () => this.acceptPrivacyPolicy());
         
-        // Decline button
         const declineBtn = this.dialog.querySelector('#privacy-decline-btn');
         declineBtn?.addEventListener('click', () => this.declinePrivacyPolicy());
         
-        // View full policy link
         const viewPolicyLink = this.dialog.querySelector('#view-full-policy');
         viewPolicyLink?.addEventListener('click', (e) => {
             e.preventDefault();
             this.openFullPrivacyPolicy();
         });
         
-        // Prevent dialog close on overlay click for privacy policy
         this.overlay?.addEventListener('click', (e) => {
             e.stopPropagation();
         });
@@ -69,13 +58,9 @@ class PrivacyPolicyDialog {
 
     async acceptPrivacyPolicy() {
         try {
-            // Store acceptance in local storage
             await this.setPrivacyAcceptance(true);
             
-            // Close dialog
             this.close();
-            
-            // Show success message
             this.app?.showSuccess?.('Privacy policy accepted');
             
         } catch (error) {
@@ -86,16 +71,12 @@ class PrivacyPolicyDialog {
 
     async declinePrivacyPolicy() {
         try {
-            // Store decline in local storage
             await this.setPrivacyAcceptance(false);
             
-            // Close dialog
             this.close();
             
-            // Show alert before closing
             alert('Privacy policy declined. The extension will now close.');
             
-            // Close extension window after alert
             window.close();
             
         } catch (error) {
@@ -103,10 +84,10 @@ class PrivacyPolicyDialog {
         }
     }
 
-    openFullPrivacyPolicy() {
-        // Open the full privacy policy on GitHub
+    async openFullPrivacyPolicy() {
+        const { GITHUB_CONFIG } = await import('../../config/constants.js');
         chrome.tabs.create({
-            url: 'https://github.com/ravi-ivar-7/erp-auto-auth/blob/master/docs/privacy.md'
+            url: GITHUB_CONFIG.PRIVACY_POLICY_URL
         });
     }
 

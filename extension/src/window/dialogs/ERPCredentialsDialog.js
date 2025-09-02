@@ -29,24 +29,18 @@ export class ERPCredentialsDialog {
             this.dialog.style.width = '100%';
             this.dialog.style.height = '100%';
 
-            // Create style
             this.style = document.createElement('style');
             this.style.textContent = cssContent;
 
-            // Add to DOM
             document.head.appendChild(this.style);
             document.body.appendChild(this.dialog);
 
-            // Disable body scroll
             document.body.style.overflow = 'hidden';
 
-            // Load ERP session data
             await this.loadData();
             
-            // Setup event listeners
             this.setupEventListeners();
             
-            // Show with animation
             requestAnimationFrame(() => {
                 const overlay = this.dialog.querySelector('.credentials-overlay');
                 if (overlay) {
@@ -70,7 +64,6 @@ export class ERPCredentialsDialog {
 
     async loadData() {
         try {
-            // Get ERP session data using correct storage key
             const erpSession = await this.getERPSession();
             
             if (!erpSession) {
@@ -78,36 +71,30 @@ export class ERPCredentialsDialog {
                 return;
             }
 
-            // Store and display token values directly
             this.sessionTokenValue = erpSession.sessionToken || 'Not available';
             this.ssoTokenValue = erpSession.ssoToken || 'Not available';
 
-            // Display session token
             const sessionTokenEl = document.getElementById('session-token-display');
             if (sessionTokenEl) {
                 sessionTokenEl.textContent = this.sessionTokenValue;
             }
 
-            // Display SSO token
             const ssoTokenEl = document.getElementById('sso-token-display');
             if (ssoTokenEl) {
                 ssoTokenEl.textContent = this.ssoTokenValue;
             }
 
-            // Populate authenticated URL
             const authUrlEl = document.getElementById('auth-url-value');
             if (authUrlEl && erpSession.sessionToken) {
                 authUrlEl.textContent = `https://erp.iitkgp.ac.in/IIT_ERP3/?sessionToken=${erpSession.sessionToken}`;
             }
 
-            // Populate login time
             const loginTimeEl = document.getElementById('login-time-value');
             if (loginTimeEl && erpSession.timestamp) {
                 const loginDate = new Date(erpSession.timestamp);
                 loginTimeEl.textContent = loginDate.toLocaleString();
             }
 
-            // Populate user agent
             const userAgentEl = document.getElementById('user-agent-value');
             if (userAgentEl) {
                 userAgentEl.textContent = navigator.userAgent;
@@ -157,13 +144,10 @@ export class ERPCredentialsDialog {
 
 
     setupEventListeners() {
-        // Close button
         document.getElementById('credentials-close')?.addEventListener('click', () => this.close());
 
-        // Copy buttons
         this.setupCopyButtons();
 
-        // Close on overlay click
         const overlay = document.querySelector('.credentials-overlay');
         overlay?.addEventListener('click', (e) => {
             if (e.target === overlay) {
@@ -171,7 +155,6 @@ export class ERPCredentialsDialog {
             }
         });
 
-        // Keyboard close
         this.handleEscape = (e) => {
             if (e.key === 'Escape') {
                 this.close();
@@ -181,7 +164,6 @@ export class ERPCredentialsDialog {
     }
 
     setupCopyButtons() {
-        // Session token copy
         const sessionTokenBtn = document.getElementById('copy-session-token');
         if (sessionTokenBtn) {
             sessionTokenBtn.addEventListener('click', () => {
@@ -189,7 +171,6 @@ export class ERPCredentialsDialog {
             });
         }
 
-        // SSO token copy
         const ssoTokenBtn = document.getElementById('copy-sso-token');
         if (ssoTokenBtn) {
             ssoTokenBtn.addEventListener('click', () => {
@@ -197,16 +178,13 @@ export class ERPCredentialsDialog {
             });
         }
 
-
-        // ERP URL copy
         const erpUrlBtn = document.getElementById('copy-erp-url');
         if (erpUrlBtn) {
             erpUrlBtn.addEventListener('click', () => {
                 this.copyToClipboard('https://erp.iitkgp.ac.in/IIT_ERP3/', erpUrlBtn);
             });
         }
-
-        // Authenticated URL copy
+        
         const authUrlBtn = document.getElementById('copy-auth-url');
         if (authUrlBtn) {
             authUrlBtn.addEventListener('click', () => {
@@ -215,7 +193,6 @@ export class ERPCredentialsDialog {
             });
         }
 
-        // Login time copy
         const loginTimeBtn = document.getElementById('copy-login-time');
         if (loginTimeBtn) {
             loginTimeBtn.addEventListener('click', () => {
@@ -224,7 +201,6 @@ export class ERPCredentialsDialog {
             });
         }
 
-        // User agent copy
         const userAgentBtn = document.getElementById('copy-user-agent');
         if (userAgentBtn) {
             userAgentBtn.addEventListener('click', () => {

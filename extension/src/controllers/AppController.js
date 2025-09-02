@@ -14,7 +14,7 @@ export class AppController {
         try {
             const userData = await StorageService.getUserData();
             const gmailConnected = await GmailService.isConnected();
-            
+                
             // Check if basic credentials exist
             const hasCredentials = userData && userData.rollNumber && userData.password;
             

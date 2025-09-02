@@ -34,8 +34,6 @@ export class GmailService {
         if (typeof token === 'object' && token.token) {
             actualToken = token.token;
         }
-        
-        // Try userinfo endpoints with the actual token
         const endpoints = [
             'https://www.googleapis.com/oauth2/v2/userinfo',
             'https://www.googleapis.com/oauth2/v1/userinfo'
@@ -63,7 +61,6 @@ export class GmailService {
             }
         }
         
-        // If all endpoints fail, throw an error instead of returning dummy data
         throw new Error('Failed to retrieve user information from Gmail API. Please reconnect your Gmail account.');
     }
 
@@ -232,7 +229,6 @@ export class GmailService {
                                 status: 'success'
                             });
                             
-                            // Show verifying status after OTP success
                             setTimeout(() => {
                                 onProgress?.('polling', {
                                     message: 'Verifying OTP with ERP...',

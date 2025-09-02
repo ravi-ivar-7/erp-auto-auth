@@ -30,7 +30,6 @@ export class LoginController {
         this.loginInProgress = true;
         
         try {
-            // Don't navigate to login screen, stay on dashboard and show progress
             this.showProgressOnDashboard();
             
             const result = await ERPApiService.performFullLogin(null, (step, message) => {
@@ -80,12 +79,10 @@ export class LoginController {
         const mappedStep = stepMapping[step] || step;
         const stepElement = document.querySelector(`[data-step="${mappedStep}"]`);
         
-        // Remove active/completed from all steps
         document.querySelectorAll('.progress-step').forEach(el => {
             el.classList.remove('active', 'completed');
         });
         
-        // Mark previous steps as completed
         const allSteps = ['credentials', 'security', 'otp', 'login'];
         const currentIndex = allSteps.indexOf(mappedStep);
         
@@ -100,7 +97,6 @@ export class LoginController {
             }
         });
         
-        // Update progress bar
         const progressFill = document.querySelector('.progress-fill');
         if (progressFill) {
             const progress = ((currentIndex + 1) / allSteps.length) * 100;
@@ -163,7 +159,6 @@ export class LoginController {
     async completeLogin() {
         this.updateDashboardProgress('complete', 'Login successful');
         
-        // Hide progress and show success
         setTimeout(() => {
             const loginProgress = document.querySelector('.login-progress');
             if (loginProgress) {
@@ -196,7 +191,6 @@ export class LoginController {
     }
 
     handleLoginError(error) {
-        // Hide progress and reset button
         const loginProgress = document.querySelector('.login-progress');
         if (loginProgress) {
             loginProgress.classList.add('hidden');

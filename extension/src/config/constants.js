@@ -34,6 +34,14 @@ export const UI_CONFIG = {
 };
 
 
+export const GITHUB_CONFIG = {
+    REPOSITORY_URL: 'https://github.com/ravi-ivar-7/erp-auto-auth',
+    ISSUES_URL: 'https://github.com/ravi-ivar-7/erp-auto-auth/issues',
+    DISCUSSIONS_URL: 'https://github.com/ravi-ivar-7/erp-auto-auth/discussions',
+    PRIVACY_POLICY_URL: 'https://github.com/ravi-ivar-7/erp-auto-auth/blob/master/docs/privacy.md',
+    OAUTH_SETUP_URL: 'https://github.com/ravi-ivar-7/erp-auto-auth/blob/master/docs/google-oauth-setup.md'
+};
+
 export const ERROR_MESSAGES = {
     INVALID_CREDENTIALS: 'Invalid roll number or password',
     CAPTCHA_FAILED: 'Captcha verification failed',
