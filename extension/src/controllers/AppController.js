@@ -1,5 +1,4 @@
-import { StorageService } from '../services/StorageService.js';
-import { CredentialService } from '../services/CredentialService.js';
+import { StorageService } from '../services/StorageService.js'; 
 import { GmailService } from '../services/GmailService.js';
 
 export class AppController {
@@ -13,7 +12,7 @@ export class AppController {
 
     async isValidSetup() {
         try {
-            const userData = await CredentialService.getUserData();
+            const userData = await StorageService.getUserData();
             const gmailConnected = await GmailService.isConnected();
             
             // Check if basic credentials exist
@@ -40,7 +39,7 @@ export class AppController {
 
     async loadUserInfo() {
         try {
-            const userData = await CredentialService.getUserData();
+            const userData = await StorageService.getUserData();
             const gmailConnected = await GmailService.isConnected();
             const lastLogin = await StorageService.getLastLogin();
             
@@ -68,7 +67,7 @@ export class AppController {
     }
 
     async getUserData() {
-        return await CredentialService.getUserData();
+        return await StorageService.getUserData();
     }
 
     async resetAllData() {

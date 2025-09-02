@@ -65,13 +65,11 @@ export class ERPApiService {
     static async getSecurityQuestion(rollNumber) {
         try {
             
-            // Add proper headers like Python requests
             const headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
             };
             
-            // Use URLSearchParams instead of FormData for proper encoding
             const formData = new URLSearchParams();
             formData.append('user_id', rollNumber);
             
@@ -105,7 +103,7 @@ export class ERPApiService {
     static async getSecurityQuestions(rollNumber) {
         try {
             const questions = new Set();
-            const maxAttempts = 10; // Prevent infinite loop
+            const maxAttempts = 10;
             let attempts = 0;
             
             while (questions.size < 3 && attempts < maxAttempts) {
@@ -198,7 +196,6 @@ export class ERPApiService {
                 requestedUrl: ERP_CONFIG.HOMEPAGE_URL
             };
             
-            // Use URLSearchParams for proper encoding like security question API
             const formData = new URLSearchParams();
             Object.keys(loginDetails).forEach(key => {
                 formData.append(key, loginDetails[key]);
@@ -368,8 +365,8 @@ export class ERPApiService {
         try {
             
             if (!credentials) {
-                const { CredentialService } = await import('./CredentialService.js');
-                credentials = await CredentialService.getUserData();
+                const { StorageService } = await import('./StorageService.js');
+                credentials = await StorageService.getUserData();
                 if (!credentials) {
                     throw new Error('No credentials found. Please complete setup first.');
                 }
@@ -382,7 +379,6 @@ export class ERPApiService {
             onProgress?.('security', 'Getting security question');
             const securityQuestion = await this.getSecurityQuestion(credentials.rollNumber);
             
-            // Convert stored security questions array to proper format if needed
             let securityQuestionsMap = {};
             
             if (Array.isArray(credentials.securityQuestions)) {
@@ -463,7 +459,7 @@ export class ERPApiService {
             
             
             
-            // First request OTP, then wait for it (like Python code)
+            // First request OTP, then wait for it 
             onProgress?.('otp', 'Requesting OTP');
             await this.requestOTP(credentials, sessionToken, securityAnswer);
             
@@ -615,7 +611,6 @@ export class ERPApiService {
 
     static async openAuthenticatedERP(session) {
         try {
-            // Use the correct authenticated URL format from Python code
             const authenticatedUrl = `${ERP_CONFIG.HOMEPAGE_URL}?ssoToken=${session.ssoToken}`;
             
             const tab = await chrome.tabs.create({
@@ -629,17 +624,4 @@ export class ERPApiService {
         }
     }
 
-    static async checkSession() {
-        try {
-            const response = await fetch(ERP_CONFIG.DASHBOARD_URL, {
-                method: 'GET',
-                credentials: 'include'
-            });
-            
-            const text = await response.text();
-            return !text.includes('login') && text.includes('welcome');
-        } catch (error) {
-            return false;
-        }
-    }
 }

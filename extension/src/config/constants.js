@@ -5,7 +5,7 @@ export const ERP_CONFIG = {
     SECURITY_URL: 'https://erp.iitkgp.ac.in/SSOAdministration/getSecurityQues.htm',
     OTP_URL: 'https://erp.iitkgp.ac.in/SSOAdministration/getEmilOTP.htm',
     WELCOMEPAGE_URL: 'https://erp.iitkgp.ac.in/IIT_ERP3/welcome.jsp',
-    DASHBOARD_URL: 'https://erp.iitkgp.ac.in/IIT_ERP3/home.jsp'
+    DASHBOARD_URL:   'https://erp.iitkgp.ac.in/IIT_ERP3/home.jsp'
 };
 
 export const GMAIL_CONFIG = {

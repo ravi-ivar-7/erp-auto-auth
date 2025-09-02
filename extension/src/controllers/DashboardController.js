@@ -177,28 +177,44 @@ export class DashboardController {
             const loginBtnText = loginBtn?.querySelector('.btn-text');
             const loginBtnIcon = loginBtn?.querySelector('.btn-icon');
             
-            if (session && quickAccessCard) {
-                const sessionDate = new Date(session.timestamp);
-                const timeRemaining = await CredentialService.getSessionTimeRemaining();
-                const formattedTime = CredentialService.formatTimeRemaining(timeRemaining);
+            // Check if session exists and is valid via HTTP request
+            if (session) {
+                const isValid = await CredentialService.isERPSessionValid();
                 
-                sessionTime.textContent = `Session from: ${sessionDate.toLocaleString()}`;
-                quickAccessCard.classList.remove('hidden');
-                
-                // Update login button for relogin
-                if (loginCardTitle) {
-                    loginCardTitle.textContent = 'ERP Login (Relogin)';
-                }
-                if (loginBtnText) {
-                    loginBtnText.textContent = 'Relogin to ERP';
-                }
-                if (loginBtnIcon) {
-                    loginBtnIcon.textContent = '🔄';
-                }
-                
-                // Auto-refresh to update countdown
-                if (timeRemaining > 0) {
-                    setTimeout(() => this.checkERPSession(), 30000); // Update every 30 seconds
+                if (isValid && quickAccessCard) {
+                    const sessionDate = new Date(session.timestamp);
+                    
+                    sessionTime.textContent = `Session from: ${sessionDate.toLocaleString()}`;
+                    quickAccessCard.classList.remove('hidden');
+                    
+                    // Update login button for relogin
+                    if (loginCardTitle) {
+                        loginCardTitle.textContent = 'ERP Login (Relogin)';
+                    }
+                    if (loginBtnText) {
+                        loginBtnText.textContent = 'Relogin to ERP';
+                    }
+                    if (loginBtnIcon) {
+                        loginBtnIcon.textContent = '🔄';
+                    }
+                } else {
+                    // Session exists but is invalid, clear it
+                    await CredentialService.clearERPSession();
+                    
+                    if (quickAccessCard) {
+                        quickAccessCard.classList.add('hidden');
+                    }
+                    
+                    // Reset login button for new login
+                    if (loginCardTitle) {
+                        loginCardTitle.textContent = 'ERP Login';
+                    }
+                    if (loginBtnText) {
+                        loginBtnText.textContent = 'Login to ERP';
+                    }
+                    if (loginBtnIcon) {
+                        loginBtnIcon.textContent = '🚀';
+                    }
                 }
             } else if (quickAccessCard) {
                 quickAccessCard.classList.add('hidden');

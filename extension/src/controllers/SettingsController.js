@@ -31,7 +31,7 @@ export class SettingsController {
 
     async loadSettings() {
         try {
-            const userData = await CredentialService.getUserData();
+            const userData = await StorageService.getUserData();
             
             this.userData = userData;
             document.getElementById('settings-roll').textContent = userData?.rollNumber || 'Not set';

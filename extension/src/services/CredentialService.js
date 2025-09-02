@@ -18,8 +18,7 @@ export class CredentialService {
             sessionToken: sessionData.sessionToken,
             ssoToken: sessionData.ssoToken,
             cookies: sessionData.cookies,
-            timestamp: Date.now(),
-            expiresAt: sessionData.expiresAt || (Date.now() + 10 * 60 * 1000) // 10 minutes expiration
+            timestamp: Date.now()
         };
         
         return await StorageService.set('erp_session', erpSession);
@@ -29,11 +28,6 @@ export class CredentialService {
         const session = await StorageService.get('erp_session');
         if (!session) return null;
         
-        if (session.expiresAt && Date.now() > session.expiresAt) {
-            await this.clearERPSession();
-            return null;
-        }
-        
         return session;
     }
 
@@ -41,12 +35,9 @@ export class CredentialService {
         return await StorageService.remove('erp_session');
     }
 
-    static async getUserData() {
-        return await StorageService.getUserData();
-    }
 
     static async updateUserData(updates) {
-        const existing = await this.getUserData();
+        const existing = await StorageService.getUserData();
         if (!existing) return false;
         
         const updated = { ...existing, ...updates };
@@ -85,21 +76,25 @@ export class CredentialService {
         const session = await StorageService.get('erp_session');
         if (!session) return false;
         
-        return session.expiresAt && Date.now() < session.expiresAt;
+        try {
+            // Use stored ssoToken to validate session like Python version
+            const validateUrl = `https://erp.iitkgp.ac.in/IIT_ERP3/welcome.jsp?ssoToken=${session.ssoToken}`;
+            
+            const response = await fetch(validateUrl, {
+                method: 'GET',
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                }
+            });
+            
+            // Check content length like Python version
+            const contentLength = response.headers.get('Content-Length');
+            return contentLength === '1034';
+        } catch (error) {
+            console.error('Failed to validate ERP session:', error);
+            return false;
+        }
     }
 
-    static async getSessionTimeRemaining() {
-        const session = await StorageService.get('erp_session');
-        if (!session || !session.expiresAt) return 0;
-        
-        const remaining = session.expiresAt - Date.now();
-        return Math.max(0, remaining);
-    }
 
-    static formatTimeRemaining(milliseconds) {
-        const totalSeconds = Math.floor(milliseconds / 1000);
-        const minutes = Math.floor(totalSeconds / 60);
-        const seconds = totalSeconds % 60;
-        return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-    }
 }
